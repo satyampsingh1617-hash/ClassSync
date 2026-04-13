@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ClassSync</string>
+    <string name="title_activity_main">ClassSync</string>
+    <string name="package_name">com.ClassSync.app</string>
+    <string name="custom_url_scheme">com.ClassSync.app</string>
+</resources>
