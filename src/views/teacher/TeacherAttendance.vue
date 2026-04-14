@@ -414,7 +414,7 @@ const submitBulk = async () => {
       timeSlot:  timeSlot.value,
       records,
     })
-    showAlert(`✓ Saved — ${data.results.success.length} marked, ${data.results.failed.length} skipped (already exists)`)
+    showAlert(`✓ Saved — ${data.results.success.length} students updated${data.results.failed.length ? `, ${data.results.failed.length} failed` : ''}`)
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to save attendance', 'error')
   } finally { submitting.value = false }

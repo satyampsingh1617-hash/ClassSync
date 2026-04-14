@@ -5,12 +5,34 @@
         <h2 class="text-lg font-bold text-surface-900">Attendance Records</h2>
         <p class="text-sm text-surface-500">{{ records.length }} records</p>
       </div>
-      <button @click="showReport = !showReport" class="btn-secondary self-start sm:self-auto">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
-        {{ showReport ? 'Show Records' : 'Show Report' }}
-      </button>
+      <div class="flex gap-2 flex-wrap">
+        <button @click="generateDefaulterPDF" :disabled="generatingPDF" class="btn-danger self-start sm:self-auto">
+          <svg v-if="generatingPDF" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          {{ generatingPDF ? 'Generating...' : 'Defaulter PDF' }}
+        </button>
+        <button @click="showReport = !showReport" class="btn-secondary self-start sm:self-auto">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          {{ showReport ? 'Show Records' : 'Show Report' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Day-of-week Trends Chart -->
+    <div class="card mb-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-surface-900">Attendance Trends by Day</h3>
+        <span class="text-xs text-surface-400 bg-surface-100 px-2 py-0.5 rounded-full">Mon – Sat</span>
+      </div>
+      <Bar v-if="dayChartData" :data="dayChartData" :options="dayChartOptions" class="max-h-52" />
+      <p v-else class="text-sm text-surface-400 text-center py-6">No trend data yet</p>
     </div>
 
     <!-- Filters -->
@@ -127,6 +149,18 @@
 
     <!-- Report Table -->
     <div v-else class="card p-0 overflow-hidden">
+      <div class="px-5 py-3 border-b border-surface-100 flex items-center justify-between">
+        <p class="text-sm font-semibold text-surface-700">
+          {{ filteredReport.length }} records
+          <span v-if="defaulterCount > 0" class="ml-2 text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+            {{ defaulterCount }} defaulters (&lt;75%)
+          </span>
+        </p>
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" v-model="showDefaultersOnly" class="rounded" />
+          <span class="text-surface-600">Show defaulters only</span>
+        </label>
+      </div>
       <LoadingSpinner v-if="loadingReport" />
       <div v-else class="overflow-x-auto">
         <table class="w-full">
@@ -140,27 +174,39 @@
               <th class="table-th">Total</th>
               <th class="table-th">Present</th>
               <th class="table-th">Absent</th>
-              <th class="table-th">Status</th>
+              <th class="table-th">Attendance %</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-surface-100">
-            <tr v-for="(r, i) in filteredReport" :key="i" class="hover:bg-surface-50">
+            <tr v-for="(r, i) in displayReport" :key="i"
+              class="hover:bg-surface-50 transition-colors"
+              :class="parseFloat(r.percentage) < 75 ? 'bg-red-50/40' : ''">
               <td class="table-td text-surface-400">{{ i+1 }}</td>
               <td class="table-td font-medium text-surface-900">{{ r.student?.name }}</td>
-              <td class="table-td"><span class="font-mono text-xs bg-surface-100 px-2 py-0.5 rounded-lg">{{ r.student?.roll }}</span></td>
               <td class="table-td">
-                <span :class="['class-chip text-xs font-bold', getClassChip(r.student?.class)]">{{ r.student?.class }}</span>
+                <span class="font-mono text-xs bg-surface-100 px-2 py-0.5 rounded-lg">{{ r.student?.roll }}</span>
+              </td>
+              <td class="table-td">
+                <span :class="['text-xs font-bold px-2 py-0.5 rounded-full border', getClassChip(r.student?.class)]">
+                  {{ r.student?.class }}
+                </span>
               </td>
               <td class="table-td text-surface-600">{{ r.subject?.name }}</td>
-              <td class="table-td font-medium">{{ r.total }}</td>
-              <td class="table-td text-success-dark font-medium">{{ r.present }}</td>
-              <td class="table-td text-danger-dark">{{ r.absent }}</td>
-              <td class="table-td">
-                <span v-if="parseFloat(r.percentage) >= 75" class="chip-good">{{ r.percentage }}%</span>
-                <span v-else class="chip-low">{{ r.percentage }}%</span>
+              <td class="table-td font-medium text-center">{{ r.total }}</td>
+              <td class="table-td text-center font-semibold text-emerald-600">{{ r.present }}</td>
+              <td class="table-td text-center font-semibold text-red-500">{{ r.absent }}</td>
+              <td class="table-td text-center">
+                <span :class="[
+                  'text-xs font-bold px-2.5 py-1 rounded-full',
+                  parseFloat(r.percentage) >= 75
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : parseFloat(r.percentage) >= 50
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-red-100 text-red-700'
+                ]">{{ r.percentage }}%</span>
               </td>
             </tr>
-            <tr v-if="!filteredReport.length">
+            <tr v-if="!displayReport.length">
               <td colspan="9" class="table-td text-center text-surface-400 py-10">No report data</td>
             </tr>
           </tbody>
@@ -172,21 +218,28 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { Bar } from 'vue-chartjs'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
 import AppLayout from '../../components/AppLayout.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
 import { attendanceAPI, subjectAPI } from '../../services/api'
 import { CLASS_LIST, getClassChip, getClassAvatar } from '../../utils/constants'
 
-const records       = ref([])
-const report        = ref([])
-const subjects      = ref([])
-const loading       = ref(true)
-const loadingReport = ref(false)
-const showReport    = ref(false)
-const search        = ref('')
-const alert         = ref({ msg:'', type:'success' })
-const filters       = ref({ subjectId:'', startDate:'', endDate:'', class:'' })
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+
+const records           = ref([])
+const report            = ref([])
+const subjects          = ref([])
+const loading           = ref(true)
+const loadingReport     = ref(false)
+const showReport        = ref(false)
+const showDefaultersOnly = ref(false)
+const search            = ref('')
+const alert             = ref({ msg:'', type:'success' })
+const filters           = ref({ subjectId:'', startDate:'', endDate:'', class:'' })
+const dayTrends         = ref([])
+const generatingPDF     = ref(false)
 
 const showAlert = (msg, type='success') => {
   alert.value = { msg, type }
@@ -217,6 +270,46 @@ const filteredReport = computed(() => {
   return list
 })
 
+const defaulterCount = computed(() =>
+  filteredReport.value.filter(r => parseFloat(r.percentage) < 75).length
+)
+
+const displayReport = computed(() => {
+  const list = filteredReport.value
+  return showDefaultersOnly.value ? list.filter(r => parseFloat(r.percentage) < 75) : list
+})
+
+// Day-of-week chart
+const dayChartData = computed(() => {
+  if (!dayTrends.value.length) return null
+  return {
+    labels: dayTrends.value.map(d => d.day),
+    datasets: [
+      {
+        label: 'Present',
+        data: dayTrends.value.map(d => d.present),
+        backgroundColor: '#7148fc',
+        borderRadius: 6,
+      },
+      {
+        label: 'Absent',
+        data: dayTrends.value.map(d => d.absent),
+        backgroundColor: '#ef4444',
+        borderRadius: 6,
+      },
+    ],
+  }
+})
+
+const dayChartOptions = {
+  responsive: true,
+  plugins: { legend: { position: 'top' }, title: { display: false } },
+  scales: {
+    x: { grid: { display: false } },
+    y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+  },
+}
+
 const fetchRecords = async () => {
   loading.value = true
   try {
@@ -243,6 +336,15 @@ const fetchReport = async () => {
   finally { loadingReport.value = false }
 }
 
+const fetchDayTrends = async () => {
+  try {
+    const { data } = await attendanceAPI.dayTrends(
+      filters.value.class ? { class: filters.value.class } : {}
+    )
+    dayTrends.value = data.trends
+  } catch { /* silent */ }
+}
+
 const deleteRecord = async (id) => {
   if (!confirm('Delete this attendance record?')) return
   try {
@@ -252,11 +354,119 @@ const deleteRecord = async (id) => {
   } catch { showAlert('Delete failed','error') }
 }
 
+// ── Generate Defaulter PDF ────────────────────────────────────
+const generateDefaulterPDF = async () => {
+  generatingPDF.value = true
+  try {
+    // Always fetch fresh — never use stale report.value
+    const params = {}
+    if (filters.value.class) params.class = filters.value.class
+    const { data } = await attendanceAPI.getReport(params)
+    const reportData = data.report || []
+
+    // Filter defaulters (<75%) — sorted by percentage ascending (worst first)
+    const defaulters = reportData
+      .filter(r => parseFloat(r.percentage) < 75)
+      .sort((a, b) => parseFloat(a.percentage) - parseFloat(b.percentage))
+
+    if (!defaulters.length) {
+      showAlert('No defaulters found — all students above 75%!', 'success')
+      return
+    }
+
+    // Deduplicate by student (show worst subject per student if multiple)
+    // Group by student roll for cleaner PDF
+    const studentMap = {}
+    for (const r of defaulters) {
+      const roll = r.student?.roll
+      if (!studentMap[roll]) {
+        studentMap[roll] = { ...r, subjects: [] }
+      }
+      studentMap[roll].subjects.push({
+        name: r.subject?.name,
+        total: r.total,
+        present: r.present,
+        absent: r.absent,
+        percentage: r.percentage,
+      })
+    }
+
+    const uniqueStudents = Object.values(studentMap)
+
+    // Build rows — one row per student+subject combination
+    const rows = defaulters.map((r, i) => `
+      <tr style="border-bottom: 1px solid #e5e7eb; ${parseFloat(r.percentage) < 50 ? 'background:#fff1f2;' : ''}">
+        <td style="padding: 8px 10px; text-align: center; color:#6b7280;">${i + 1}</td>
+        <td style="padding: 8px 10px; font-weight:600;">${r.student?.name || '—'}</td>
+        <td style="padding: 8px 10px; font-family: monospace; color:#7c3aed;">${r.student?.roll || '—'}</td>
+        <td style="padding: 8px 10px;">${r.student?.class || '—'}</td>
+        <td style="padding: 8px 10px; color:#374151;">${r.subject?.name || '—'}</td>
+        <td style="padding: 8px 10px; text-align: center;">${r.total}</td>
+        <td style="padding: 8px 10px; text-align: center; color:#16a34a; font-weight:600;">${r.present}</td>
+        <td style="padding: 8px 10px; text-align: center; color:#dc2626; font-weight:600;">${r.absent}</td>
+        <td style="padding: 8px 10px; text-align: center; font-weight:800; color:${parseFloat(r.percentage) < 50 ? '#dc2626' : '#ea580c'};">${r.percentage}%</td>
+      </tr>`).join('')
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Defaulter List</title>
+    <style>
+      @page { size: A4 landscape; margin: 12mm 10mm; }
+      body { font-family: Arial, sans-serif; font-size: 10pt; color: #111; margin: 0; }
+      .header { text-align: center; border-bottom: 3px solid #1e1b4b; padding-bottom: 10px; margin-bottom: 14px; }
+      h1 { font-size: 15pt; margin: 0 0 3px; color: #1e1b4b; }
+      .sub { font-size: 9pt; color: #555; margin: 0; }
+      .stats { display: flex; gap: 20px; margin-bottom: 12px; }
+      .stat { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 6px 14px; font-size: 9pt; }
+      .stat strong { color: #7c3aed; font-size: 12pt; display: block; }
+      table { width: 100%; border-collapse: collapse; }
+      thead { background: #1e1b4b; color: #fff; }
+      thead th { padding: 9px 10px; text-align: left; font-size: 9pt; white-space: nowrap; }
+      tbody tr:hover { background: #faf5ff; }
+      .footer { margin-top: 14px; display: flex; justify-content: space-between; font-size: 8pt; color: #888; border-top: 1px solid #e5e7eb; padding-top: 6px; }
+    </style></head><body>
+    <div class="header">
+      <h1>RKT College of Arts, Science &amp; Commerce</h1>
+      <p class="sub">Department of CS &amp; IT &nbsp;|&nbsp; Attendance Defaulter Report &nbsp;|&nbsp; Students below 75%</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><strong>${defaulters.length}</strong>Defaulter Records</div>
+      <div class="stat"><strong>${uniqueStudents.length}</strong>Unique Students</div>
+      <div class="stat"><strong>${new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</strong>Generated On</div>
+      ${filters.value.class ? `<div class="stat"><strong>${filters.value.class}</strong>Class Filter</div>` : ''}
+    </div>
+    <table>
+      <thead><tr>
+        <th>#</th><th>Student Name</th><th>Roll No.</th><th>Class</th><th>Subject</th>
+        <th>Total Lectures</th><th>Present</th><th>Absent</th><th>Attendance %</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="footer">
+      <span>AttendPro — RKT College Management System</span>
+      <span>Confidential — For Internal Use Only</span>
+    </div>
+    </body></html>`
+
+    const win = window.open('', '_blank')
+    if (!win) { showAlert('Popup blocked — allow popups and try again', 'error'); return }
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => win.print(), 600)
+    showAlert(`PDF ready — ${defaulters.length} defaulter records`)
+  } catch (e) {
+    showAlert('Failed to generate PDF', 'error')
+  } finally {
+    generatingPDF.value = false
+  }
+}
+
 watch(showReport, (val) => { if (val) fetchReport() })
 
 onMounted(async () => {
   const { data } = await subjectAPI.getAll()
   subjects.value = data.subjects
   fetchRecords()
+  fetchDayTrends()
 })
 </script>

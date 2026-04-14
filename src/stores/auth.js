@@ -24,6 +24,7 @@ export const useAuth = () => {
     state.user  = null
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    sessionStorage.removeItem('wasLoggedIn')
   }
 
   const isAdmin   = computed(() => state.user?.role === 'admin')

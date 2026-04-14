@@ -88,6 +88,7 @@ export const attendanceAPI = {
   markBulk:  (data)   => api.post('/attendance/bulk', data),
   getAll:    (params) => api.get('/attendance', { params }),
   getReport: (params) => api.get('/attendance/report', { params }),
+  dayTrends: (params) => api.get('/attendance/day-trends', { params }),
   delete:    (id)     => api.delete(`/attendance/${id}`),
 }
 
@@ -116,9 +117,10 @@ export const paperAPI = {
 
 // ── Announcements ─────────────────────────────────────────────
 export const announcementAPI = {
-  getAll: ()         => api.get('/announcements'),
-  create: (data)     => api.post('/announcements', data),
-  delete: (id)       => api.delete(`/announcements/${id}`),
+  getAll:   ()         => api.get('/announcements'),
+  create:   (data)     => api.post('/announcements', data),
+  delete:   (id)       => api.delete(`/announcements/${id}`),
+  markRead: (id)       => api.post(`/announcements/${id}/read`),
 }
 
 // ── Queries ───────────────────────────────────────────────────
@@ -128,6 +130,7 @@ export const queryAPI = {
   create:        (data)     => api.post('/queries', data),
   respond:       (id, data) => api.put(`/queries/${id}/respond`, data),
   reopen:        (id)       => api.put(`/queries/${id}/reopen`),
+  markSeen:      (id)       => api.put(`/queries/${id}/seen`),
   classOverview: ()         => api.get('/queries/class-overview'),
 }
 

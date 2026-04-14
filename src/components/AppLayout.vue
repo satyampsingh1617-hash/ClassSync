@@ -52,11 +52,34 @@
             ? 'bg-brand-50 text-brand-700 shadow-sm'
             : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'"
         >
-          <span class="flex-shrink-0 w-4 h-4 transition-colors"
+          <span class="relative flex-shrink-0 w-4 h-4 transition-colors"
             :class="isActive(link.to) ? 'text-brand-600' : 'text-surface-400 group-hover:text-surface-600'"
-            v-html="link.icon"></span>
+            v-html="link.icon">
+          </span>
           <span v-if="!sidebarCollapsed" class="truncate">{{ link.label }}</span>
-          <span v-if="!sidebarCollapsed && isActive(link.to)"
+
+          <!-- Student: unread announcements badge -->
+          <span
+            v-if="!sidebarCollapsed && isStudent && link.to === '/student/announcements' && unreadCount > 0"
+            class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+            style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+          >{{ unreadCount }}</span>
+
+          <!-- Student: unseen teacher replies badge -->
+          <span
+            v-else-if="!sidebarCollapsed && isStudent && link.to === '/student/queries' && unseenReplyCount > 0"
+            class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+            style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+          >{{ unseenReplyCount }}</span>
+
+          <!-- Teacher: pending queries badge -->
+          <span
+            v-else-if="!sidebarCollapsed && isTeacher && link.to === '/teacher/queries' && pendingQueryCount > 0"
+            class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+            style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+          >{{ pendingQueryCount }}</span>
+
+          <span v-else-if="!sidebarCollapsed && isActive(link.to)"
             class="ml-auto w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0"></span>
         </router-link>
       </nav>
@@ -121,6 +144,21 @@
           >
             <span class="w-4 h-4" :class="isActive(link.to) ? 'text-brand-600' : 'text-surface-400'" v-html="link.icon"></span>
             {{ link.label }}
+            <!-- Student: unread announcements -->
+            <span v-if="isStudent && link.to === '/student/announcements' && unreadCount > 0"
+              class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+              style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+            >{{ unreadCount }}</span>
+            <!-- Student: unseen teacher replies -->
+            <span v-else-if="isStudent && link.to === '/student/queries' && unseenReplyCount > 0"
+              class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+              style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+            >{{ unseenReplyCount }}</span>
+            <!-- Teacher: pending queries -->
+            <span v-else-if="isTeacher && link.to === '/teacher/queries' && pendingQueryCount > 0"
+              class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+              style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+            >{{ pendingQueryCount }}</span>
           </router-link>
         </nav>
 
@@ -181,10 +219,28 @@
       <div class="flex items-center justify-around px-1 py-1">
         <router-link
           v-for="link in bottomNavLinks" :key="link.to" :to="link.to"
-          class="flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-all min-w-0 flex-1"
+          class="relative flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-all min-w-0 flex-1"
           :class="isActive(link.to) ? 'text-brand-600' : 'text-surface-400'"
         >
           <span class="w-5 h-5" v-html="link.icon"></span>
+          <!-- Student: unread announcements dot -->
+          <span
+            v-if="isStudent && link.to === '/student/announcements' && unreadCount > 0"
+            class="absolute top-1 right-3 w-2.5 h-2.5 rounded-full animate-pulse"
+            style="background: #ef4444; box-shadow: 0 0 6px #ef4444;"
+          ></span>
+          <!-- Student: unseen replies dot -->
+          <span
+            v-if="isStudent && link.to === '/student/queries' && unseenReplyCount > 0"
+            class="absolute top-1 right-3 w-2.5 h-2.5 rounded-full animate-pulse"
+            style="background: #ef4444; box-shadow: 0 0 6px #ef4444;"
+          ></span>
+          <!-- Teacher: pending queries dot -->
+          <span
+            v-if="isTeacher && link.to === '/teacher/queries' && pendingQueryCount > 0"
+            class="absolute top-1 right-3 w-2.5 h-2.5 rounded-full animate-pulse"
+            style="background: #ef4444; box-shadow: 0 0 6px #ef4444;"
+          ></span>
           <span class="text-xs font-medium truncate w-full text-center">{{ link.label }}</span>
         </router-link>
       </div>
@@ -196,22 +252,43 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../stores/auth'
-import { teacherAPI } from '../services/api'
+import { teacherAPI, announcementAPI, queryAPI } from '../services/api'
 
 const { user, logout, isAdmin, isTeacher, isStudent } = useAuth()
 const route  = useRoute()
 const router = useRouter()
 
-const sidebarCollapsed = ref(false)
-const mobileMenuOpen   = ref(false)
-const teacherProfile   = ref(null)
+const sidebarCollapsed  = ref(false)
+const mobileMenuOpen    = ref(false)
+const teacherProfile    = ref(null)
+const unreadCount       = ref(0)   // student: unread announcements
+const pendingQueryCount = ref(0)   // teacher: pending (unresponded) queries
+const unseenReplyCount  = ref(0)   // student: resolved queries not yet seen
 
-// Fetch teacher profile to check isClassTeacher
 onMounted(async () => {
   if (isTeacher.value) {
     try {
       const { data } = await teacherAPI.myProfile()
       teacherProfile.value = data.teacher
+    } catch { /* ignore */ }
+    // Count pending queries for teacher badge
+    try {
+      const { data } = await queryAPI.getAll()
+      pendingQueryCount.value = (data.queries || []).filter(q => q.status === 'Pending').length
+    } catch { /* ignore */ }
+  }
+  if (isStudent.value) {
+    // Unread announcements badge
+    try {
+      const { data } = await announcementAPI.getAll()
+      unreadCount.value = (data.announcements || []).filter(a => !a.isRead).length
+    } catch { /* ignore */ }
+    // Unseen teacher replies badge
+    try {
+      const { data } = await queryAPI.getAll()
+      unseenReplyCount.value = (data.queries || []).filter(
+        q => q.status === 'Resolved' && !q.studentSeenResponse
+      ).length
     } catch { /* ignore */ }
   }
 })

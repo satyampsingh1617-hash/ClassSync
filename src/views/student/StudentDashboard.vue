@@ -3,46 +3,123 @@
     <LoadingSpinner v-if="loading" />
 
     <template v-else>
-      <!-- Stats row -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-            :class="parseFloat(overall.percentage) >= 75 ? 'bg-emerald-100' : 'bg-red-100'">
-            <svg class="w-6 h-6" :class="parseFloat(overall.percentage) >= 75 ? 'text-emerald-600' : 'text-red-500'"
-              fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      <!-- ── Attendance Analytics Hero ─────────────────────── -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+
+        <!-- Circular Progress Card -->
+        <div class="card flex flex-col items-center justify-center py-6 lg:col-span-1"
+          style="background: linear-gradient(135deg, #1a1040 0%, #2d1b69 100%); border: 1px solid #4c2fa0;">
+          <!-- SVG Circular Progress -->
+          <div class="relative w-36 h-36 mb-4">
+            <svg class="w-36 h-36 -rotate-90" viewBox="0 0 36 36">
+              <!-- Track -->
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2d2660" stroke-width="3"/>
+              <!-- 75% goal marker -->
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4c2fa0" stroke-width="1"
+                stroke-dasharray="75 25" stroke-dashoffset="0" stroke-linecap="round"/>
+              <!-- Progress arc -->
+              <circle cx="18" cy="18" r="15.9" fill="none"
+                :stroke="attendanceStatus.color"
+                stroke-width="3.5"
+                :stroke-dasharray="`${Math.min(100, parseFloat(overall.percentage))} 100`"
+                stroke-linecap="round"
+                style="transition: stroke-dasharray 1s ease, stroke 0.5s;"/>
             </svg>
+            <!-- Center text -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-3xl font-black" :style="{ color: attendanceStatus.color }">
+                {{ overall.percentage }}%
+              </span>
+              <span class="text-xs font-bold mt-0.5" :style="{ color: attendanceStatus.color }">
+                {{ attendanceStatus.label }}
+              </span>
+            </div>
           </div>
-          <div>
-            <p class="text-2xl font-black" :class="parseFloat(overall.percentage) >= 75 ? 'text-emerald-600' : 'text-red-500'">
-              {{ overall.percentage }}%
-            </p>
-            <p class="text-xs text-surface-500 font-medium">Overall Attendance</p>
-            <p class="text-xs text-surface-400">{{ overall.present }} present / {{ overall.total }} classes</p>
+
+          <!-- Stats row -->
+          <div class="flex gap-6 text-center">
+            <div>
+              <p class="text-xl font-black text-emerald-400">{{ overall.present }}</p>
+              <p class="text-xs" style="color: #8b7db0;">Present</p>
+            </div>
+            <div style="width: 1px; background: #2d2660;"></div>
+            <div>
+              <p class="text-xl font-black text-red-400">{{ overall.absent }}</p>
+              <p class="text-xs" style="color: #8b7db0;">Absent</p>
+            </div>
+            <div style="width: 1px; background: #2d2660;"></div>
+            <div>
+              <p class="text-xl font-black" style="color: #a78bfa;">{{ overall.total }}</p>
+              <p class="text-xs" style="color: #8b7db0;">Total</p>
+            </div>
           </div>
         </div>
 
-        <div class="card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+        <!-- 75% Goal Tracker -->
+        <div class="card lg:col-span-2 flex flex-col justify-center"
+          style="background: #1b163d; border: 1px solid #2d2660;">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+              style="background: rgba(113,72,252,0.2);">
+              <svg class="w-4 h-4" style="color: #7148fc;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h3 class="font-bold" style="color: #e9d5ff;">75% Goal Tracker</h3>
           </div>
-          <div>
-            <p class="text-2xl font-black text-emerald-600">{{ overall.present }}</p>
-            <p class="text-xs text-surface-500 font-medium">Classes Present</p>
-          </div>
-        </div>
 
-        <div class="card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+          <!-- Safe -->
+          <div v-if="parseFloat(overall.percentage) >= 75" class="rounded-xl p-4"
+            style="background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🎯</span>
+              <div>
+                <p class="font-bold text-emerald-400">You're on track!</p>
+                <p class="text-sm mt-0.5" style="color: #6ee7b7;">
+                  You can afford to miss
+                  <strong class="text-emerald-300">{{ canMiss }}</strong> more lecture{{ canMiss !== 1 ? 's' : '' }}
+                  and still stay above 75%.
+                </p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p class="text-2xl font-black text-red-500">{{ overall.absent }}</p>
-            <p class="text-xs text-surface-500 font-medium">Classes Absent</p>
+
+          <!-- Below 75% -->
+          <div v-else class="rounded-xl p-4"
+            style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">⚠️</span>
+              <div>
+                <p class="font-bold text-red-400">Attendance Shortage!</p>
+                <p class="text-sm mt-0.5" style="color: #fca5a5;">
+                  Attend <strong class="text-red-300">{{ needToAttend }}</strong> consecutive lecture{{ needToAttend !== 1 ? 's' : '' }} to reach 75%.
+                </p>
+              </div>
+            </div>
+            <!-- Mini progress to 75% -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs" style="color: #8b7db0;">
+                <span>Current: {{ overall.percentage }}%</span>
+                <span>Goal: 75%</span>
+              </div>
+              <div class="w-full rounded-full h-2" style="background: #2d2660;">
+                <div class="h-2 rounded-full transition-all duration-700"
+                  style="background: linear-gradient(90deg, #ef4444, #f97316);"
+                  :style="{ width: `${Math.min(100, (parseFloat(overall.percentage) / 75) * 100)}%` }">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subject defaulter warnings -->
+          <div v-if="defaulterSubjects.length" class="mt-4 space-y-2">
+            <p class="text-xs font-bold uppercase tracking-wider" style="color: #6b5fa0;">Subjects Below 75%</p>
+            <div v-for="sub in defaulterSubjects" :key="sub.subject?._id"
+              class="flex items-center justify-between px-3 py-2 rounded-lg"
+              style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);">
+              <span class="text-sm font-medium" style="color: #fca5a5;">{{ sub.subject?.name }}</span>
+              <span class="text-xs font-bold text-red-400">{{ sub.percentage }}%</span>
+            </div>
           </div>
         </div>
       </div>
@@ -219,6 +296,35 @@ const chartData = computed(() => {
     }],
   }
 })
+
+// ── Attendance analytics computed ─────────────────────────────
+const attendanceStatus = computed(() => {
+  const pct = parseFloat(overall.value.percentage)
+  if (pct >= 75) return { label: 'Safe',      color: '#4ade80' }
+  if (pct >= 60) return { label: 'Warning',   color: '#fb923c' }
+  return              { label: 'Defaulter',  color: '#ef4444' }
+})
+
+// How many more lectures can be missed and stay ≥75%
+const canMiss = computed(() => {
+  const { present, total } = overall.value
+  if (!total) return 0
+  // present / (total + x) >= 0.75 → x <= present/0.75 - total
+  return Math.max(0, Math.floor(present / 0.75 - total))
+})
+
+// How many consecutive lectures needed to reach 75%
+const needToAttend = computed(() => {
+  const { present, total } = overall.value
+  if (!total) return 0
+  // (present + x) / (total + x) >= 0.75 → x >= (0.75*total - present) / 0.25
+  return Math.max(0, Math.ceil((0.75 * total - present) / 0.25))
+})
+
+// Subjects below 75%
+const defaulterSubjects = computed(() =>
+  bySubject.value.filter(s => parseFloat(s.percentage) < 75)
+)
 
 const chartOptions = {
   responsive: true,

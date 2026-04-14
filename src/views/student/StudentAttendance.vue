@@ -63,7 +63,7 @@
           </div>
 
           <div v-if="parseFloat(sub.percentage) < 75" class="mt-2 text-xs text-red-500 bg-red-50 px-2 py-1 rounded">
-            ⚠ Below 75% — attendance shortage
+            ⚠ Below 75% — Need {{ Math.max(0, Math.ceil((0.75 * sub.total - sub.present) / 0.25)) }} more lectures to reach 75%
           </div>
           <div v-else class="mt-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
             ✓ Good standing
@@ -133,11 +133,15 @@ const filteredSubjects = computed(() => {
 })
 
 const filteredRecords = computed(() => {
+  // Flatten all records from all subjects
   const allRecords = bySubject.value.flatMap(s => s.records || [])
-  if (!activeSubject.value) return allRecords.sort((a, b) => b.date.localeCompare(a.date))
-  return allRecords
-    .filter(r => r.subjectId?._id === activeSubject.value || r.subjectId === activeSubject.value)
-    .sort((a, b) => b.date.localeCompare(a.date))
+  const sorted = [...allRecords].sort((a, b) => b.date.localeCompare(a.date))
+  if (!activeSubject.value) return sorted
+  // Match by populated _id string OR raw ObjectId string
+  return sorted.filter(r => {
+    const subId = r.subjectId?._id?.toString() || r.subjectId?.toString()
+    return subId === activeSubject.value
+  })
 })
 
 onMounted(async () => {

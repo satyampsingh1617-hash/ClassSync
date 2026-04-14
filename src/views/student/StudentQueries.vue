@@ -63,10 +63,19 @@
               <span class="text-xs text-surface-400">{{ formatDate(q.createdAt) }}</span>
             </div>
           </div>
-          <span :class="q.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
-            class="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-            {{ q.status }}
-          </span>
+          <div class="flex items-center gap-2">
+            <!-- Unseen reply indicator -->
+            <span
+              v-if="q.status === 'Resolved' && !q.studentSeenResponse"
+              class="w-2.5 h-2.5 rounded-full animate-pulse flex-shrink-0"
+              style="background: #ef4444; box-shadow: 0 0 6px #ef4444;"
+              title="New reply"
+            ></span>
+            <span :class="q.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
+              class="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+              {{ q.status }}
+            </span>
+          </div>
         </div>
 
         <!-- My message -->
@@ -75,7 +84,7 @@
           <p class="text-sm text-surface-700 leading-relaxed">{{ q.message }}</p>
         </div>
 
-        <!-- Teacher response -->
+        <!-- Teacher response — mark seen on view -->
         <div v-if="q.response" class="bg-brand-50 border border-brand-100 rounded-xl p-3">
           <p class="text-xs font-semibold text-brand-600 mb-1">Teacher's Response</p>
           <p class="text-sm text-surface-700 leading-relaxed">{{ q.response }}</p>
@@ -134,7 +143,6 @@ const noTeacherError = ref('')
 const alert          = ref({ msg: '', type: 'success' })
 
 const form = ref({ subject: '', message: '' })
-
 const msgIcon = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`
 
 const showAlert = (msg, type = 'success') => {
@@ -157,6 +165,13 @@ const fetchQueries = async () => {
   try {
     const { data } = await queryAPI.getAll()
     queries.value = data.queries
+    // Auto-mark all resolved+unseen replies as seen (optimistic)
+    data.queries.forEach(q => {
+      if (q.status === 'Resolved' && !q.studentSeenResponse) {
+        q.studentSeenResponse = true
+        queryAPI.markSeen(q._id).catch(() => {})
+      }
+    })
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to load queries', 'error')
   } finally {
