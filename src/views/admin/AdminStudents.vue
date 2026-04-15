@@ -8,12 +8,20 @@
           <span v-if="selectedClass"> in <strong>{{ selectedClass }}</strong></span>
         </p>
       </div>
-      <button @click="openAdd" class="btn-primary self-start sm:self-auto">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Add Student
-      </button>
+      <div class="flex gap-2 self-start sm:self-auto">
+        <button @click="showResetModal = true" class="btn-danger">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Reset All
+        </button>
+        <button @click="openAdd" class="btn-primary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Student
+        </button>
+      </div>
     </div>
 
     <AlertMessage :message="alert.msg" :type="alert.type" class="mb-4" />
@@ -225,6 +233,89 @@
         <button @click="doDelete" class="btn-danger" :disabled="saving">{{ saving ? 'Deleting...' : 'Delete' }}</button>
       </div>
     </ModalDialog>
+
+    <!-- ── Reset All Students Modal ─────────────────────────── -->
+    <ModalDialog :show="showResetModal" title="⚠️ Reset All Students" @close="closeResetModal">
+      <div class="space-y-5">
+
+        <!-- Warning banner -->
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+              <p class="text-sm font-bold text-red-800">This action is permanent and cannot be undone.</p>
+              <ul class="text-xs text-red-700 mt-2 space-y-1 list-disc list-inside">
+                <li>All <strong>{{ students.length }} student accounts</strong> will be deleted</li>
+                <li>All <strong>attendance records</strong> will be wiped</li>
+                <li>All <strong>attendance logs &amp; violation records</strong> will be cleared</li>
+                <li>Students will no longer be able to log in</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1 — checkbox -->
+        <div v-if="resetStep === 1" class="space-y-4">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" v-model="resetChecked" class="mt-0.5 w-4 h-4 rounded border-surface-300 text-red-600 focus:ring-red-500" />
+            <span class="text-sm text-surface-700">
+              I understand this will permanently delete all student data across all classes (FYCS, FYIT, SYCS, SYIT, TYCS, TYIT).
+            </span>
+          </label>
+          <div class="flex justify-end gap-3 pt-2">
+            <button @click="closeResetModal" class="btn-secondary">Cancel</button>
+            <button @click="resetStep = 2" :disabled="!resetChecked" class="btn-danger">
+              Continue →
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2 — type confirmation -->
+        <div v-else-if="resetStep === 2" class="space-y-4">
+          <div>
+            <label class="label">Type <strong class="text-red-600 font-mono">DELETE ALL STUDENTS</strong> to confirm</label>
+            <input
+              v-model="resetConfirmText"
+              type="text"
+              class="input font-mono"
+              placeholder="DELETE ALL STUDENTS"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <p v-if="resetConfirmText && resetConfirmText !== 'DELETE ALL STUDENTS'"
+              class="text-xs text-red-500 mt-1">Text does not match exactly.</p>
+          </div>
+          <div class="flex justify-end gap-3 pt-2">
+            <button @click="resetStep = 1" class="btn-secondary">← Back</button>
+            <button
+              @click="doResetAll"
+              :disabled="resetConfirmText !== 'DELETE ALL STUDENTS' || resetting"
+              class="btn-danger"
+            >
+              <svg v-if="resetting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              {{ resetting ? 'Deleting...' : '🗑 Delete Everything' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3 — done -->
+        <div v-else-if="resetStep === 3" class="text-center py-4">
+          <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <p class="font-bold text-surface-900">Reset Complete</p>
+          <p class="text-sm text-surface-500 mt-1">{{ resetSummary }}</p>
+          <button @click="closeResetModal" class="btn-primary mt-4">Done</button>
+        </div>
+      </div>
+    </ModalDialog>
   </AppLayout>
 </template>
 
@@ -234,7 +325,7 @@ import AppLayout from '../../components/AppLayout.vue'
 import ModalDialog from '../../components/ModalDialog.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
-import { authAPI, studentAPI } from '../../services/api'
+import { authAPI, studentAPI, adminAPI } from '../../services/api'
 import { CLASS_LIST, getClassChip, getClassAvatar } from '../../utils/constants'
 
 const students      = ref([])
@@ -249,6 +340,38 @@ const selectedClass = ref('')
 const currentPage   = ref(1)
 const pageSize      = 15
 const alert         = ref({ msg:'', type:'success' })
+
+// ── Reset state ───────────────────────────────────────────────
+const showResetModal    = ref(false)
+const resetStep         = ref(1)       // 1=checkbox, 2=type confirm, 3=done
+const resetChecked      = ref(false)
+const resetConfirmText  = ref('')
+const resetting         = ref(false)
+const resetSummary      = ref('')
+
+const closeResetModal = () => {
+  showResetModal.value   = false
+  resetStep.value        = 1
+  resetChecked.value     = false
+  resetConfirmText.value = ''
+  resetSummary.value     = ''
+}
+
+const doResetAll = async () => {
+  if (resetConfirmText.value !== 'DELETE ALL STUDENTS') return
+  resetting.value = true
+  try {
+    const { data } = await adminAPI.resetStudents('DELETE ALL STUDENTS')
+    resetSummary.value = `Deleted ${data.summary.studentsDeleted} students, ${data.summary.attendanceDeleted} attendance records, ${data.summary.logsDeleted} logs.`
+    resetStep.value = 3
+    students.value = []   // clear local list immediately
+  } catch (e) {
+    showAlert(e.response?.data?.message || 'Reset failed. Please try again.', 'error')
+    closeResetModal()
+  } finally {
+    resetting.value = false
+  }
+}
 
 const emptyForm = () => ({ name:'', roll:'', studentClass:'', email:'', phone:'', password:'' })
 const form = ref(emptyForm())

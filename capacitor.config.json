@@ -1,5 +1,16 @@
 {
   "appId": "com.ClassSync.app",
   "appName": "ClassSync",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
 }

@@ -9,12 +9,12 @@
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    @apply bg-surface-50 text-surface-800 antialiased;
+    @apply bg-slate-50 text-slate-700 antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { @apply bg-surface-100; }
-  ::-webkit-scrollbar-thumb { @apply bg-surface-300 rounded-full; }
+  ::-webkit-scrollbar-track { @apply bg-slate-100; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
   ::-webkit-scrollbar-thumb:hover { @apply bg-brand-400; }
   ::selection { @apply bg-brand-100 text-brand-800; }
 }
@@ -157,4 +157,10 @@
 @media print {
   body { background: white !important; }
   .no-print { display: none !important; }
+}
+
+/* ── Location timeout progress bar ────────────────────────── */
+@keyframes locationTimeout {
+  from { width: 100%; }
+  to   { width: 0%; }
 }

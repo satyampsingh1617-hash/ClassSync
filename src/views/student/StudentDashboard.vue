@@ -7,15 +7,14 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
         <!-- Circular Progress Card -->
-        <div class="card flex flex-col items-center justify-center py-6 lg:col-span-1"
-          style="background: linear-gradient(135deg, #1a1040 0%, #2d1b69 100%); border: 1px solid #4c2fa0;">
+        <div class="card flex flex-col items-center justify-center py-6 lg:col-span-1 bg-gradient-to-br from-brand-50 to-indigo-50 border border-brand-100">
           <!-- SVG Circular Progress -->
           <div class="relative w-36 h-36 mb-4">
             <svg class="w-36 h-36 -rotate-90" viewBox="0 0 36 36">
               <!-- Track -->
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2d2660" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e0e7ff" stroke-width="3"/>
               <!-- 75% goal marker -->
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4c2fa0" stroke-width="1"
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c7d2fe" stroke-width="1"
                 stroke-dasharray="75 25" stroke-dashoffset="0" stroke-linecap="round"/>
               <!-- Progress arc -->
               <circle cx="18" cy="18" r="15.9" fill="none"
@@ -39,45 +38,42 @@
           <!-- Stats row -->
           <div class="flex gap-6 text-center">
             <div>
-              <p class="text-xl font-black text-emerald-400">{{ overall.present }}</p>
-              <p class="text-xs" style="color: #8b7db0;">Present</p>
+              <p class="text-xl font-black text-emerald-600">{{ overall.present }}</p>
+              <p class="text-xs text-surface-400">Present</p>
             </div>
-            <div style="width: 1px; background: #2d2660;"></div>
+            <div class="w-px bg-surface-200"></div>
             <div>
-              <p class="text-xl font-black text-red-400">{{ overall.absent }}</p>
-              <p class="text-xs" style="color: #8b7db0;">Absent</p>
+              <p class="text-xl font-black text-red-500">{{ overall.absent }}</p>
+              <p class="text-xs text-surface-400">Absent</p>
             </div>
-            <div style="width: 1px; background: #2d2660;"></div>
+            <div class="w-px bg-surface-200"></div>
             <div>
-              <p class="text-xl font-black" style="color: #a78bfa;">{{ overall.total }}</p>
-              <p class="text-xs" style="color: #8b7db0;">Total</p>
+              <p class="text-xl font-black text-brand-600">{{ overall.total }}</p>
+              <p class="text-xs text-surface-400">Total</p>
             </div>
           </div>
         </div>
 
         <!-- 75% Goal Tracker -->
-        <div class="card lg:col-span-2 flex flex-col justify-center"
-          style="background: #1b163d; border: 1px solid #2d2660;">
+        <div class="card lg:col-span-2 flex flex-col justify-center">
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-              style="background: rgba(113,72,252,0.2);">
-              <svg class="w-4 h-4" style="color: #7148fc;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-8 h-8 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
             </div>
-            <h3 class="font-bold" style="color: #e9d5ff;">75% Goal Tracker</h3>
+            <h3 class="font-bold text-surface-900">75% Goal Tracker</h3>
           </div>
 
           <!-- Safe -->
-          <div v-if="parseFloat(overall.percentage) >= 75" class="rounded-xl p-4"
-            style="background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);">
+          <div v-if="parseFloat(overall.percentage) >= 75" class="rounded-xl p-4 bg-emerald-50 border border-emerald-200">
             <div class="flex items-center gap-3">
               <span class="text-2xl">🎯</span>
               <div>
-                <p class="font-bold text-emerald-400">You're on track!</p>
-                <p class="text-sm mt-0.5" style="color: #6ee7b7;">
+                <p class="font-bold text-emerald-700">You're on track!</p>
+                <p class="text-sm mt-0.5 text-emerald-600">
                   You can afford to miss
-                  <strong class="text-emerald-300">{{ canMiss }}</strong> more lecture{{ canMiss !== 1 ? 's' : '' }}
+                  <strong class="text-emerald-700">{{ canMiss }}</strong> more lecture{{ canMiss !== 1 ? 's' : '' }}
                   and still stay above 75%.
                 </p>
               </div>
@@ -85,26 +81,24 @@
           </div>
 
           <!-- Below 75% -->
-          <div v-else class="rounded-xl p-4"
-            style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+          <div v-else class="rounded-xl p-4 bg-red-50 border border-red-200">
             <div class="flex items-center gap-3 mb-3">
               <span class="text-2xl">⚠️</span>
               <div>
-                <p class="font-bold text-red-400">Attendance Shortage!</p>
-                <p class="text-sm mt-0.5" style="color: #fca5a5;">
-                  Attend <strong class="text-red-300">{{ needToAttend }}</strong> consecutive lecture{{ needToAttend !== 1 ? 's' : '' }} to reach 75%.
+                <p class="font-bold text-red-700">Attendance Shortage!</p>
+                <p class="text-sm mt-0.5 text-red-600">
+                  Attend <strong class="text-red-700">{{ needToAttend }}</strong> consecutive lecture{{ needToAttend !== 1 ? 's' : '' }} to reach 75%.
                 </p>
               </div>
             </div>
             <!-- Mini progress to 75% -->
             <div class="space-y-1">
-              <div class="flex justify-between text-xs" style="color: #8b7db0;">
+              <div class="flex justify-between text-xs text-surface-500">
                 <span>Current: {{ overall.percentage }}%</span>
                 <span>Goal: 75%</span>
               </div>
-              <div class="w-full rounded-full h-2" style="background: #2d2660;">
-                <div class="h-2 rounded-full transition-all duration-700"
-                  style="background: linear-gradient(90deg, #ef4444, #f97316);"
+              <div class="w-full rounded-full h-2 bg-red-100">
+                <div class="h-2 rounded-full transition-all duration-700 bg-gradient-to-r from-red-400 to-orange-400"
                   :style="{ width: `${Math.min(100, (parseFloat(overall.percentage) / 75) * 100)}%` }">
                 </div>
               </div>
@@ -113,30 +107,35 @@
 
           <!-- Subject defaulter warnings -->
           <div v-if="defaulterSubjects.length" class="mt-4 space-y-2">
-            <p class="text-xs font-bold uppercase tracking-wider" style="color: #6b5fa0;">Subjects Below 75%</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-surface-400">Subjects Below 75%</p>
             <div v-for="sub in defaulterSubjects" :key="sub.subject?._id"
-              class="flex items-center justify-between px-3 py-2 rounded-lg"
-              style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);">
-              <span class="text-sm font-medium" style="color: #fca5a5;">{{ sub.subject?.name }}</span>
-              <span class="text-xs font-bold text-red-400">{{ sub.percentage }}%</span>
+              class="flex items-center justify-between px-3 py-2 rounded-lg bg-red-50 border border-red-100">
+              <span class="text-sm font-medium text-red-700">{{ sub.subject?.name }}</span>
+              <span class="text-xs font-bold text-red-600">{{ sub.percentage }}%</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ── OTP Entry Card ──────────────────────────────── -->
-      <div class="card mb-6 border-2" :class="otpSuccess ? 'border-emerald-300 bg-emerald-50' : 'border-brand-100'">
+      <div class="card mb-6 border-2 transition-colors duration-300"
+        :class="otpSuccess ? 'border-emerald-300 bg-emerald-50/60' : 'border-brand-100'">
+
+        <!-- Card header -->
         <div class="flex items-center gap-2 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-brand-100 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-xl bg-brand-100 flex items-center justify-center flex-shrink-0">
             <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
             </svg>
           </div>
-          <h3 class="font-bold text-surface-900">Mark Attendance via OTP</h3>
+          <div>
+            <h3 class="font-bold text-surface-900 leading-tight">Mark Attendance via OTP</h3>
+            <p class="text-xs text-surface-400">Location verified at submission</p>
+          </div>
         </div>
 
-        <!-- Success state -->
-        <div v-if="otpSuccess" class="text-center py-4">
+        <!-- ── SUCCESS ──────────────────────────────────────── -->
+        <div v-if="otpSuccess" class="text-center py-5">
           <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
             <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
@@ -144,19 +143,104 @@
           </div>
           <p class="font-bold text-emerald-700 text-lg">Attendance Marked!</p>
           <p class="text-sm text-emerald-600 mt-1">You are marked Present ✓</p>
-          <button @click="otpSuccess = false; otpForm.code = ''" class="mt-3 text-xs text-surface-400 hover:text-surface-600 underline">
+          <p v-if="lastDistance !== null" class="text-xs text-emerald-500 mt-1.5 flex items-center justify-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            {{ lastDistance }}m from campus gate
+          </p>
+          <button @click="otpSuccess = false; otpForm.code = ''; lastDistance = null"
+            class="mt-4 text-xs text-surface-400 hover:text-surface-600 underline">
             Mark another subject
           </button>
         </div>
 
-        <!-- Entry form -->
+        <!-- ── LOCATION ERROR BANNER ────────────────────────── -->
+        <div v-else-if="locationError" class="mb-4 rounded-xl p-4 border"
+          :class="{
+            'bg-amber-50 border-amber-200': locationError.code === 'PERMISSION_DENIED',
+            'bg-orange-50 border-orange-200': locationError.code === 'TIMEOUT',
+            'bg-red-50 border-red-200': locationError.code === 'GPS_OFF' || locationError.code === 'SPOOF',
+            'bg-surface-50 border-surface-200': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF'].includes(locationError.code),
+          }">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl flex-shrink-0 mt-0.5">
+              {{ { PERMISSION_DENIED: '🔒', TIMEOUT: '📡', GPS_OFF: '📍', SPOOF: '🚫' }[locationError.code] || '⚠️' }}
+            </span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold"
+                :class="{
+                  'text-amber-800': locationError.code === 'PERMISSION_DENIED',
+                  'text-orange-800': locationError.code === 'TIMEOUT',
+                  'text-red-800': ['GPS_OFF','SPOOF'].includes(locationError.code),
+                  'text-surface-800': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF'].includes(locationError.code),
+                }">
+                {{ {
+                  PERMISSION_DENIED: 'Location Permission Required',
+                  TIMEOUT: 'Poor GPS Signal',
+                  GPS_OFF: 'GPS / Location Services Off',
+                  SPOOF: 'Security Check Failed',
+                }[locationError.code] || 'Location Error' }}
+              </p>
+              <p class="text-xs mt-1 leading-relaxed"
+                :class="{
+                  'text-amber-700': locationError.code === 'PERMISSION_DENIED',
+                  'text-orange-700': locationError.code === 'TIMEOUT',
+                  'text-red-700': ['GPS_OFF','SPOOF'].includes(locationError.code),
+                  'text-surface-600': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF'].includes(locationError.code),
+                }">
+                {{ locationError.message }}
+              </p>
+              <!-- Settings deep-link for permission denied -->
+              <button v-if="locationError.code === 'PERMISSION_DENIED'"
+                @click="openAppSettings"
+                class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Open App Settings
+              </button>
+              <button v-else
+                @click="locationError = null"
+                class="mt-2 text-xs font-semibold underline opacity-60 hover:opacity-100">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── VERIFYING LOCATION SPINNER ───────────────────── -->
+        <div v-else-if="fetchingLocation" class="flex flex-col items-center justify-center py-8 gap-3">
+          <div class="relative">
+            <div class="w-14 h-14 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-semibold text-surface-700">Verifying Location...</p>
+            <p class="text-xs text-surface-400 mt-0.5">Please stay still. GPS acquiring signal.</p>
+          </div>
+          <!-- 10s timeout progress bar -->
+          <div class="w-48 h-1.5 bg-surface-100 rounded-full overflow-hidden">
+            <div class="h-full bg-brand-400 rounded-full" style="animation: locationTimeout 10s linear forwards;"></div>
+          </div>
+        </div>
+
+        <!-- ── ENTRY FORM ────────────────────────────────────── -->
         <div v-else>
           <AlertMessage :message="otpAlert.msg" :type="otpAlert.type" class="mb-4" />
 
           <div class="flex flex-col sm:flex-row gap-3 items-end">
+            <!-- Subject -->
             <div class="flex-1">
               <label class="label">Subject</label>
-              <select v-model="otpForm.subjectId" class="input">
+              <select v-model="otpForm.subjectId" class="input" :disabled="verifying">
                 <option value="">— Select Subject —</option>
                 <option v-for="s in subjects" :key="s._id" :value="s._id">
                   {{ s.name }} ({{ s.code }})
@@ -164,6 +248,7 @@
               </select>
             </div>
 
+            <!-- OTP input -->
             <div class="w-full sm:w-52">
               <label class="label">OTP Code</label>
               <div class="relative">
@@ -175,9 +260,10 @@
                   maxlength="6"
                   class="input text-center text-2xl font-black tracking-[0.4em] pr-10"
                   placeholder="······"
-                  @keyup.enter="verifyOTP"
+                  :disabled="verifying"
+                  @keyup.enter="handleSubmitOTP"
                 />
-                <button v-if="otpForm.code" @click="otpForm.code = ''"
+                <button v-if="otpForm.code && !verifying" @click="otpForm.code = ''"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-surface-300 hover:text-surface-500">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -186,8 +272,9 @@
               </div>
             </div>
 
+            <!-- Submit button — disabled while verifying to prevent double-tap -->
             <button
-              @click="verifyOTP"
+              @click="handleSubmitOTP"
               :disabled="verifying || !otpForm.code || otpForm.code.length < 6 || !otpForm.subjectId"
               class="btn-success w-full sm:w-auto px-6 py-2.5 justify-center"
             >
@@ -198,13 +285,18 @@
               <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              {{ verifying ? 'Verifying...' : 'Submit OTP' }}
+              {{ verifying ? 'Submitting...' : 'Submit OTP' }}
             </button>
           </div>
 
-          <p class="text-xs text-surface-400 mt-3">
-            Enter the 6-digit code shared by your teacher to mark yourself present.
-          </p>
+          <!-- Location info hint -->
+          <div class="mt-3 flex items-center gap-2 text-xs text-surface-400">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Your location will be verified when you submit. You must be within 100m of campus.
+          </div>
         </div>
       </div>
 
@@ -267,23 +359,29 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, DoughnutController } from 'chart.js'
 import AppLayout from '../../components/AppLayout.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import { studentAPI, subjectAPI, otpAPI } from '../../services/api'
+import { requestLocation, GeofenceError } from '../../utils/useGeofence.js'
 
-ChartJS.register(ArcElement, Tooltip, Legend)
+ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController)
 
-const loading    = ref(true)
-const verifying  = ref(false)
-const otpSuccess = ref(false)
-const overall    = ref({ total: 0, present: 0, absent: 0, percentage: '0.0' })
-const bySubject  = ref([])
-const subjects   = ref([])
-const otpForm    = ref({ subjectId: '', code: '' })
-const otpAlert   = ref({ msg: '', type: 'success' })
+// ── State ─────────────────────────────────────────────────────
+const loading         = ref(true)
+const verifying       = ref(false)   // OTP API call in progress — blocks double-tap
+const fetchingLocation = ref(false)  // GPS acquiring — shows spinner
+const otpSuccess      = ref(false)
+const lastDistance    = ref(null)    // metres from campus gate on success
+const locationError   = ref(null)    // { code, message } — shown in error banner
+const overall         = ref({ total: 0, present: 0, absent: 0, percentage: '0.0' })
+const bySubject       = ref([])
+const subjects        = ref([])
+const otpForm         = ref({ subjectId: '', code: '' })
+const otpAlert        = ref({ msg: '', type: 'success' })
 
+// ── Chart ─────────────────────────────────────────────────────
 const chartData = computed(() => {
   if (!overall.value.total) return null
   return {
@@ -297,35 +395,6 @@ const chartData = computed(() => {
   }
 })
 
-// ── Attendance analytics computed ─────────────────────────────
-const attendanceStatus = computed(() => {
-  const pct = parseFloat(overall.value.percentage)
-  if (pct >= 75) return { label: 'Safe',      color: '#4ade80' }
-  if (pct >= 60) return { label: 'Warning',   color: '#fb923c' }
-  return              { label: 'Defaulter',  color: '#ef4444' }
-})
-
-// How many more lectures can be missed and stay ≥75%
-const canMiss = computed(() => {
-  const { present, total } = overall.value
-  if (!total) return 0
-  // present / (total + x) >= 0.75 → x <= present/0.75 - total
-  return Math.max(0, Math.floor(present / 0.75 - total))
-})
-
-// How many consecutive lectures needed to reach 75%
-const needToAttend = computed(() => {
-  const { present, total } = overall.value
-  if (!total) return 0
-  // (present + x) / (total + x) >= 0.75 → x >= (0.75*total - present) / 0.25
-  return Math.max(0, Math.ceil((0.75 * total - present) / 0.25))
-})
-
-// Subjects below 75%
-const defaulterSubjects = computed(() =>
-  bySubject.value.filter(s => parseFloat(s.percentage) < 75)
-)
-
 const chartOptions = {
   responsive: true,
   cutout: '72%',
@@ -334,28 +403,120 @@ const chartOptions = {
   }}},
 }
 
+// ── Attendance analytics ──────────────────────────────────────
+const attendanceStatus = computed(() => {
+  const pct = parseFloat(overall.value.percentage)
+  if (pct >= 75) return { label: 'Safe',     color: '#16a34a' }
+  if (pct >= 60) return { label: 'Warning',  color: '#d97706' }
+  return               { label: 'Defaulter', color: '#dc2626' }
+})
+
+const canMiss = computed(() => {
+  const { present, total } = overall.value
+  if (!total) return 0
+  return Math.max(0, Math.floor(present / 0.75 - total))
+})
+
+const needToAttend = computed(() => {
+  const { present, total } = overall.value
+  if (!total) return 0
+  return Math.max(0, Math.ceil((0.75 * total - present) / 0.25))
+})
+
+const defaulterSubjects = computed(() =>
+  bySubject.value.filter(s => parseFloat(s.percentage) < 75)
+)
+
+// ── Helpers ───────────────────────────────────────────────────
 const showOtpAlert = (msg, type = 'success') => {
   otpAlert.value = { msg, type }
-  setTimeout(() => otpAlert.value.msg = '', 4000)
+  setTimeout(() => { otpAlert.value.msg = '' }, 4000)
 }
 
-const verifyOTP = async () => {
+// Open device app settings (works in Capacitor/Android via deep link)
+const openAppSettings = () => {
+  // On Android Capacitor, open app settings via intent URL
+  if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
+    window.location.href = 'app-settings:'
+  } else {
+    // Web browser — instruct user manually
+    showOtpAlert('Please allow location access in your browser/app settings, then try again.', 'info')
+  }
+}
+
+// ── Main OTP submit handler ───────────────────────────────────
+// Step 1: Get location → Step 2: Verify OTP with coords
+const handleSubmitOTP = async () => {
   if (!otpForm.value.code || otpForm.value.code.length < 6 || !otpForm.value.subjectId) return
+  if (verifying.value || fetchingLocation.value) return  // prevent double-tap
+
+  locationError.value = null
+  otpAlert.value = { msg: '', type: 'success' }
+
+  // ── Step 1: Acquire GPS location ─────────────────────────
+  fetchingLocation.value = true
+  let locationData = null
+
+  try {
+    locationData = await requestLocation()
+  } catch (err) {
+    fetchingLocation.value = false
+    if (err instanceof GeofenceError) {
+      locationError.value = { code: err.code, message: err.message }
+    } else {
+      locationError.value = { code: 'POSITION_ERROR', message: 'Could not get your location. Please try again.' }
+    }
+    return
+  } finally {
+    fetchingLocation.value = false
+  }
+
+  // ── Step 2: Submit OTP with location to backend ───────────
   verifying.value = true
   try {
-    const { data } = await otpAPI.verify(otpForm.value)
+    const payload = {
+      code:           otpForm.value.code,
+      subjectId:      otpForm.value.subjectId,
+      latitude:       locationData.latitude,
+      longitude:      locationData.longitude,
+      accuracy:       locationData.accuracy,
+      isMockLocation: locationData.isMockLocation,
+      isProxy:        locationData.isProxy,
+    }
+
+    const { data } = await otpAPI.verify(payload)
+
     if (data.success) {
       otpSuccess.value = true
+      lastDistance.value = data.distance ?? locationData.distance ?? null
       otpForm.value = { subjectId: '', code: '' }
       fetchAttendance()
     }
   } catch (e) {
-    showOtpAlert(e.response?.data?.message || 'Invalid or expired OTP', 'error')
+    const errCode = e.response?.data?.code
+    const errMsg  = e.response?.data?.message || 'Invalid or expired OTP'
+
+    if (errCode === 'OUT_OF_BOUNDS') {
+      const dist  = e.response?.data?.distance
+      const limit = e.response?.data?.limit
+      locationError.value = {
+        code: 'OUT_OF_BOUNDS',
+        message: `You are ${dist}m from campus. Must be within ${limit}m to mark attendance.`,
+      }
+    } else if (errCode === 'SPOOF_DETECTED') {
+      locationError.value = {
+        code: 'SPOOF',
+        message: 'Security check failed. Mock location or proxy detected. Disable any fake GPS apps and try again.',
+      }
+    } else {
+      showOtpAlert(errMsg, 'error')
+    }
   } finally {
     verifying.value = false
   }
 }
 
+// ── Data fetching ─────────────────────────────────────────────
 const fetchAttendance = async () => {
   try {
     const { data } = await studentAPI.myAttendance()

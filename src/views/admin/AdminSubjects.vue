@@ -2,8 +2,8 @@
   <AppLayout>
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h2 class="text-lg font-semibold text-gray-900">Subjects</h2>
-        <p class="text-sm text-gray-500">{{ subjects.length }} subjects</p>
+        <h2 class="text-lg font-semibold text-surface-900">Subjects</h2>
+        <p class="text-sm text-surface-500">{{ subjects.length }} subjects</p>
       </div>
       <button @click="openAdd" class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +19,7 @@
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead>
             <tr>
               <th class="table-th">#</th>
               <th class="table-th">Subject Name</th>
@@ -29,22 +29,22 @@
               <th class="table-th">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="(s, i) in subjects" :key="s._id" class="hover:bg-gray-50">
-              <td class="table-td text-gray-400">{{ i + 1 }}</td>
-              <td class="table-td font-medium text-gray-900">{{ s.name }}</td>
-              <td class="table-td"><span class="font-mono text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded">{{ s.code }}</span></td>
-              <td class="table-td"><span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">{{ s.class }}</span></td>
-              <td class="table-td text-gray-500">{{ s.teacherId?.name || 'Unassigned' }}</td>
+          <tbody class="divide-y divide-surface-100">
+            <tr v-for="(s, i) in subjects" :key="s._id" class="hover:bg-surface-50">
+              <td class="table-td text-surface-400">{{ i + 1 }}</td>
+              <td class="table-td font-medium text-surface-900">{{ s.name }}</td>
+              <td class="table-td"><span class="font-mono text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-lg border border-orange-200">{{ s.code }}</span></td>
+              <td class="table-td"><span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-200">{{ s.class }}</span></td>
+              <td class="table-td text-surface-500">{{ s.teacherId?.name || 'Unassigned' }}</td>
               <td class="table-td">
                 <div class="flex items-center gap-2">
                   <button @click="openEdit(s)" class="text-brand-600 hover:text-brand-800 text-xs font-medium">Edit</button>
-                  <button @click="confirmDelete(s)" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                  <button @click="confirmDelete(s)" class="text-danger hover:text-danger-dark text-xs font-medium">Delete</button>
                 </div>
               </td>
             </tr>
             <tr v-if="!subjects.length">
-              <td colspan="6" class="table-td text-center text-gray-400 py-10">No subjects found</td>
+              <td colspan="6" class="table-td text-center text-surface-400 py-10">No subjects found</td>
             </tr>
           </tbody>
         </table>
@@ -93,7 +93,7 @@
 
     <!-- Delete confirm -->
     <ModalDialog :show="showDelete" title="Delete Subject" @close="showDelete = false">
-      <p class="text-sm text-gray-600 mb-6">Delete subject <strong>{{ deleteTarget?.name }}</strong>?</p>
+      <p class="text-sm text-surface-600 mb-6">Delete subject <strong>{{ deleteTarget?.name }}</strong>?</p>
       <div class="flex justify-end gap-3">
         <button @click="showDelete = false" class="btn-secondary">Cancel</button>
         <button @click="deleteSubject" class="btn-danger" :disabled="saving">{{ saving ? 'Deleting...' : 'Delete' }}</button>

@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md">
 
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 font-black text-xl text-white bg-white/20 backdrop-blur-sm border border-white/30 shadow-brand-lg">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 font-black text-xl text-white bg-gradient-to-br from-brand-500 to-brand-700 shadow-brand">
           CA
         </div>
-        <h1 class="text-3xl font-black text-white tracking-tight">AttendPro</h1>
-        <p class="text-brand-200 mt-1 text-sm">College Attendance Management System</p>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">AttendPro</h1>
+        <p class="text-slate-500 mt-1 text-sm">College Attendance Management System</p>
       </div>
 
       <!-- Card -->
@@ -55,18 +55,8 @@
           </button>
         </form>
 
-        <!-- Quick login -->
-        <div class="mt-6 p-4 rounded-2xl bg-surface-50 border border-surface-200">
-          <p class="text-xs font-bold text-surface-400 uppercase tracking-wider mb-3">Quick Login</p>
-          <button @click="fill('pkc001','PKC001')"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white border border-transparent hover:border-surface-200 hover:shadow-card transition-all text-left">
-            <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-sm flex-shrink-0">🔑</div>
-            <div>
-              <p class="text-xs font-bold text-surface-800">Admin — PKC001</p>
-              <p class="text-xs text-surface-400">password: PKC001</p>
-            </div>
-          </button>
-        </div>
+      
+       
       </div>
     </div>
 

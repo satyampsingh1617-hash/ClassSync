@@ -5,10 +5,10 @@ export default {
     extend: {
       colors: {
         brand: {
-          50:  '#f0f4ff',
-          100: '#e0e9ff',
-          200: '#c7d7fe',
-          300: '#a5b8fc',
+          50:  '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
           400: '#818cf8',
           500: '#6366f1',   // indigo — primary
           600: '#4f46e5',
@@ -39,12 +39,12 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'card':   '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
-        'card-md':'0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
-        'card-lg':'0 10px 30px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06)',
-        'brand':  '0 4px 14px rgba(99,102,241,0.25)',
-        'brand-lg':'0 8px 25px rgba(99,102,241,0.35)',
-        'inner':  'inset 0 2px 4px rgba(0,0,0,0.04)',
+        'card':    '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+        'card-md': '0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.03)',
+        'card-lg': '0 10px 30px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04)',
+        'brand':   '0 4px 14px rgba(99,102,241,0.20)',
+        'brand-lg':'0 8px 25px rgba(99,102,241,0.28)',
+        'inner':   'inset 0 2px 4px rgba(0,0,0,0.03)',
       },
       borderRadius: {
         'xl':  '0.75rem',

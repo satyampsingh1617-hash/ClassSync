@@ -42,29 +42,29 @@
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <!-- Attendance chart -->
         <div class="card">
-          <h3 class="text-base font-semibold text-gray-900 mb-4">Attendance — Last 7 Days</h3>
+          <h3 class="text-base font-semibold text-surface-900 mb-4">Attendance — Last 7 Days</h3>
           <Bar v-if="chartData" :data="chartData" :options="chartOptions" class="max-h-64" />
-          <p v-else class="text-sm text-gray-400 text-center py-8">No data available</p>
+          <p v-else class="text-sm text-surface-400 text-center py-8">No data available</p>
         </div>
 
         <!-- Recent attendance -->
         <div class="card">
-          <h3 class="text-base font-semibold text-gray-900 mb-4">Recent Attendance</h3>
+          <h3 class="text-base font-semibold text-surface-900 mb-4">Recent Attendance</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-gray-100">
+                <tr class="border-b border-surface-100">
                   <th class="table-th">Student</th>
                   <th class="table-th">Subject</th>
                   <th class="table-th">Date</th>
                   <th class="table-th">Status</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-50">
-                <tr v-for="rec in recentAttendance" :key="rec._id" class="hover:bg-gray-50">
-                  <td class="table-td font-medium">{{ rec.studentId?.name }}</td>
-                  <td class="table-td text-gray-500">{{ rec.subjectId?.code }}</td>
-                  <td class="table-td text-gray-500">{{ rec.date }}</td>
+              <tbody class="divide-y divide-surface-50">
+                <tr v-for="rec in recentAttendance" :key="rec._id" class="hover:bg-surface-50">
+                  <td class="table-td font-medium text-surface-900">{{ rec.studentId?.name }}</td>
+                  <td class="table-td text-surface-500">{{ rec.subjectId?.code }}</td>
+                  <td class="table-td text-surface-500">{{ rec.date }}</td>
                   <td class="table-td">
                     <span :class="rec.status === 'Present' ? 'badge-present' : 'badge-absent'">
                       {{ rec.status }}
@@ -72,7 +72,7 @@
                   </td>
                 </tr>
                 <tr v-if="!recentAttendance.length">
-                  <td colspan="4" class="table-td text-center text-gray-400 py-6">No records yet</td>
+                  <td colspan="4" class="table-td text-center text-surface-400 py-6">No records yet</td>
                 </tr>
               </tbody>
             </table>

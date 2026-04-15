@@ -2,8 +2,8 @@
   <AppLayout>
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h2 class="text-lg font-semibold text-gray-900">All Users</h2>
-        <p class="text-sm text-gray-500">{{ users.length }} total accounts</p>
+        <h2 class="text-lg font-semibold text-surface-900">All Users</h2>
+        <p class="text-sm text-surface-500">{{ users.length }} total accounts</p>
       </div>
       <button @click="openCreate" class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@
       <button v-for="r in ['all','admin','teacher','student']" :key="r"
         @click="roleFilter=r"
         :class="['px-4 py-1.5 rounded-lg text-sm font-medium transition-all border',
-          roleFilter===r ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']">
+          roleFilter===r ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-surface-600 border-surface-200 hover:bg-surface-50']">
         {{ r.charAt(0).toUpperCase()+r.slice(1) }}
         <span class="ml-1 text-xs opacity-70">({{ r==='all' ? users.length : users.filter(u=>u.role===r).length }})</span>
       </button>
@@ -30,7 +30,7 @@
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead>
             <tr>
               <th class="table-th">#</th>
               <th class="table-th">Name</th>
@@ -40,29 +40,29 @@
               <th class="table-th">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="(u,i) in filteredUsers" :key="u._id" class="hover:bg-gray-50">
-              <td class="table-td text-gray-400">{{ i+1 }}</td>
-              <td class="table-td font-medium">{{ u.name }}</td>
-              <td class="table-td font-mono text-xs">{{ u.username }}</td>
+          <tbody class="divide-y divide-surface-100">
+            <tr v-for="(u,i) in filteredUsers" :key="u._id" class="hover:bg-surface-50">
+              <td class="table-td text-surface-400">{{ i+1 }}</td>
+              <td class="table-td font-medium text-surface-900">{{ u.name }}</td>
+              <td class="table-td font-mono text-xs text-surface-700">{{ u.username }}</td>
               <td class="table-td">
                 <span :class="['px-2 py-0.5 text-xs rounded-full font-medium',
                   u.role==='admin'   ? 'bg-purple-100 text-purple-700' :
                   u.role==='teacher' ? 'bg-blue-100 text-blue-700' :
-                                       'bg-green-100 text-green-700']">
+                                       'bg-emerald-100 text-emerald-700']">
                   {{ u.role }}
                 </span>
               </td>
-              <td class="table-td text-gray-500 text-xs">{{ new Date(u.createdAt).toLocaleDateString('en-IN') }}</td>
+              <td class="table-td text-surface-500 text-xs">{{ new Date(u.createdAt).toLocaleDateString('en-IN') }}</td>
               <td class="table-td">
                 <div class="flex gap-2">
-                  <button @click="openReset(u)" class="text-orange-500 text-xs font-medium hover:underline">Reset Pwd</button>
-                  <button v-if="u.username !== 'pkc001'" @click="confirmDelete(u)" class="text-red-500 text-xs font-medium hover:underline">Delete</button>
+                  <button @click="openReset(u)" class="text-orange-600 text-xs font-medium hover:underline">Reset Pwd</button>
+                  <button v-if="u.username !== 'pkc001'" @click="confirmDelete(u)" class="text-danger text-xs font-medium hover:underline">Delete</button>
                 </div>
               </td>
             </tr>
             <tr v-if="!filteredUsers.length">
-              <td colspan="6" class="table-td text-center text-gray-400 py-10">No users found</td>
+              <td colspan="6" class="table-td text-center text-surface-400 py-10">No users found</td>
             </tr>
           </tbody>
         </table>
@@ -79,7 +79,7 @@
             <button v-for="r in ['admin','teacher','student']" :key="r" type="button"
               @click="createForm.role=r"
               :class="['py-2 rounded-lg border-2 text-sm font-medium transition-all',
-                createForm.role===r ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:border-gray-300']">
+                createForm.role===r ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-surface-200 text-surface-600 hover:border-surface-300']">
               {{ r==='admin'?'🔑':r==='teacher'?'👨‍🏫':'🎓' }} {{ r.charAt(0).toUpperCase()+r.slice(1) }}
             </button>
           </div>
@@ -124,7 +124,7 @@
           </div>
         </template>
         <div>
-          <label class="label">Email <span class="text-gray-400 font-normal">(optional)</span></label>
+          <label class="label">Email <span class="text-surface-400 font-normal">(optional)</span></label>
           <input v-model="createForm.email" type="email" class="input" />
         </div>
         <div class="flex justify-end gap-3 pt-2">
@@ -139,7 +139,7 @@
     <!-- Reset Password Modal -->
     <ModalDialog :show="showReset" title="Reset Password" @close="showReset=false">
       <div class="space-y-4">
-        <p class="text-sm text-gray-600">Reset password for <strong>{{ resetTarget?.name }}</strong> ({{ resetTarget?.username }}).</p>
+        <p class="text-sm text-surface-600">Reset password for <strong>{{ resetTarget?.name }}</strong> ({{ resetTarget?.username }}).</p>
         <div>
           <label class="label">New Password</label>
           <input v-model="resetPwd" type="text" class="input" placeholder="Enter new password" />
@@ -155,7 +155,7 @@
 
     <!-- Delete Modal -->
     <ModalDialog :show="showDelete" title="Delete User" @close="showDelete=false">
-      <p class="text-sm text-gray-600 mb-6">Delete <strong>{{ deleteTarget?.name }}</strong> ({{ deleteTarget?.username }})? This cannot be undone.</p>
+      <p class="text-sm text-surface-600 mb-6">Delete <strong>{{ deleteTarget?.name }}</strong> ({{ deleteTarget?.username }})? This cannot be undone.</p>
       <div class="flex justify-end gap-3">
         <button @click="showDelete=false" class="btn-secondary">Cancel</button>
         <button @click="doDelete" class="btn-danger" :disabled="deleting">{{ deleting ? 'Deleting...' : 'Delete' }}</button>

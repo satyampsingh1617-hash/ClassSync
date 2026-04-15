@@ -2,8 +2,8 @@
   <AppLayout>
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h2 class="text-lg font-semibold text-gray-900">Teachers</h2>
-        <p class="text-sm text-gray-500">{{ teachers.length }} faculty members</p>
+        <h2 class="text-lg font-semibold text-surface-900">Teachers</h2>
+        <p class="text-sm text-surface-500">{{ teachers.length }} faculty members</p>
       </div>
       <button @click="openAdd" class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +19,7 @@
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead>
             <tr>
               <th class="table-th">#</th>
               <th class="table-th">Name</th>
@@ -30,15 +30,15 @@
               <th class="table-th">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="(t,i) in teachers" :key="t._id" class="hover:bg-gray-50">
-              <td class="table-td text-gray-400">{{ i+1 }}</td>
-              <td class="table-td font-medium">{{ t.name }}</td>
-              <td class="table-td"><span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{{ t.username || '—' }}</span></td>
-              <td class="table-td"><span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full">{{ t.department || '—' }}</span></td>
-              <td class="table-td text-gray-500 text-xs">{{ t.email || '—' }}</td>
+          <tbody class="divide-y divide-surface-100">
+            <tr v-for="(t,i) in teachers" :key="t._id" class="hover:bg-surface-50">
+              <td class="table-td text-surface-400">{{ i+1 }}</td>
+              <td class="table-td font-medium text-surface-900">{{ t.name }}</td>
+              <td class="table-td"><span class="font-mono text-xs bg-surface-100 text-surface-700 px-2 py-0.5 rounded-lg">{{ t.username || '—' }}</span></td>
+              <td class="table-td"><span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full border border-purple-200">{{ t.department || '—' }}</span></td>
+              <td class="table-td text-surface-500 text-xs">{{ t.email || '—' }}</td>
               <td class="table-td">
-                <span v-if="t.isClassTeacher" class="px-2 py-0.5 bg-brand-50 text-brand-700 text-xs rounded-full font-semibold">
+                <span v-if="t.isClassTeacher" class="px-2 py-0.5 bg-brand-50 text-brand-700 text-xs rounded-full font-semibold border border-brand-200">
                   {{ t.assignedClass }}
                 </span>
                 <span v-else class="text-surface-400 text-xs">—</span>
@@ -46,12 +46,12 @@
               <td class="table-td">
                 <div class="flex gap-2">
                   <button @click="openEdit(t)" class="text-brand-600 text-xs font-medium hover:underline">Edit</button>
-                  <button @click="confirmDelete(t)" class="text-red-500 text-xs font-medium hover:underline">Delete</button>
+                  <button @click="confirmDelete(t)" class="text-danger text-xs font-medium hover:underline">Delete</button>
                 </div>
               </td>
             </tr>
             <tr v-if="!teachers.length">
-              <td colspan="7" class="table-td text-center text-gray-400 py-10">No teachers found</td>
+              <td colspan="7" class="table-td text-center text-surface-400 py-10">No teachers found</td>
             </tr>
           </tbody>
         </table>
@@ -111,8 +111,8 @@
           </div>
         </div>
         <template v-if="!editId">
-          <div class="border-t border-gray-100 pt-4">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Login Credentials</p>
+          <div class="border-t border-surface-100 pt-4">
+            <p class="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-3">Login Credentials</p>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="label">Username</label>
@@ -136,7 +136,7 @@
 
     <!-- Delete Modal -->
     <ModalDialog :show="showDelete" title="Delete Teacher" @close="showDelete=false">
-      <p class="text-sm text-gray-600 mb-6">Delete <strong>{{ deleteTarget?.name }}</strong>? Their login account will also be removed.</p>
+      <p class="text-sm text-surface-600 mb-6">Delete <strong>{{ deleteTarget?.name }}</strong>? Their login account will also be removed.</p>
       <div class="flex justify-end gap-3">
         <button @click="showDelete=false" class="btn-secondary">Cancel</button>
         <button @click="doDelete" class="btn-danger" :disabled="saving">{{ saving ? 'Deleting...' : 'Delete' }}</button>

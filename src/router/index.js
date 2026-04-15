@@ -21,6 +21,7 @@ const TeacherPaperPrint = () => import('../views/teacher/TeacherPaperPrint.vue')
 const TeacherAnnouncements = () => import('../views/teacher/TeacherAnnouncements.vue')
 const TeacherQueries    = () => import('../views/teacher/TeacherQueries.vue')
 const TeacherClassOverview = () => import('../views/teacher/TeacherClassOverview.vue')
+const TeacherDefaulters   = () => import('../views/teacher/TeacherDefaulters.vue')
 
 // Student
 const StudentDashboard  = () => import('../views/student/StudentDashboard.vue')
@@ -32,6 +33,7 @@ const StudentProfile    = () => import('../views/student/StudentProfile.vue')
 
 // Admin
 const AdminAnnouncements = () => import('../views/admin/AdminAnnouncements.vue')
+const AdminViolations    = () => import('../views/admin/AdminViolations.vue')
 
 const NotFound = () => import('../views/NotFound.vue')
 
@@ -49,6 +51,7 @@ const routes = [
   { path: '/admin/attendance',       component: AdminAttendance,     meta: { auth: true, role: 'admin' } },
   { path: '/admin/papers',           component: AdminPapers,         meta: { auth: true, role: 'admin' } },
   { path: '/admin/announcements',    component: AdminAnnouncements,  meta: { auth: true, role: 'admin' } },
+  { path: '/admin/violations',       component: AdminViolations,     meta: { auth: true, role: 'admin' } },
 
   // ── Teacher ────────────────────────────────────────────────
   { path: '/teacher',                    component: TeacherDashboard,     meta: { auth: true, role: 'teacher' } },
@@ -59,6 +62,8 @@ const routes = [
   { path: '/teacher/announcements',      component: TeacherAnnouncements, meta: { auth: true, role: 'teacher' } },
   { path: '/teacher/queries',            component: TeacherQueries,       meta: { auth: true, role: 'teacher' } },
   { path: '/teacher/class-overview',     component: TeacherClassOverview, meta: { auth: true, role: 'teacher' } },
+  { path: '/teacher/defaulters',         component: TeacherDefaulters,    meta: { auth: true, role: 'teacher' } },
+  { path: '/teacher/violations',         component: AdminViolations,      meta: { auth: true, role: 'teacher' } },
 
   // ── Student ────────────────────────────────────────────────
   { path: '/student',                    component: StudentDashboard,     meta: { auth: true, role: 'student' } },

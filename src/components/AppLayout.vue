@@ -79,6 +79,13 @@
             style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
           >{{ pendingQueryCount }}</span>
 
+          <!-- Admin/Teacher: violation badge -->
+          <span
+            v-else-if="!sidebarCollapsed && (isAdmin || isTeacher) && (link.to === '/admin/violations' || link.to === '/teacher/violations') && violationCount > 0"
+            class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse"
+            style="background: #ef4444; color: #fff; min-width: 18px; text-align: center;"
+          >{{ violationCount }}</span>
+
           <span v-else-if="!sidebarCollapsed && isActive(link.to)"
             class="ml-auto w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0"></span>
         </router-link>
@@ -252,7 +259,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../stores/auth'
-import { teacherAPI, announcementAPI, queryAPI } from '../services/api'
+import { teacherAPI, announcementAPI, queryAPI, otpAPI } from '../services/api'
 
 const { user, logout, isAdmin, isTeacher, isStudent } = useAuth()
 const route  = useRoute()
@@ -264,6 +271,7 @@ const teacherProfile    = ref(null)
 const unreadCount       = ref(0)   // student: unread announcements
 const pendingQueryCount = ref(0)   // teacher: pending (unresponded) queries
 const unseenReplyCount  = ref(0)   // student: resolved queries not yet seen
+const violationCount    = ref(0)   // teacher/admin: new geofence violations
 
 onMounted(async () => {
   if (isTeacher.value) {
@@ -271,19 +279,30 @@ onMounted(async () => {
       const { data } = await teacherAPI.myProfile()
       teacherProfile.value = data.teacher
     } catch { /* ignore */ }
-    // Count pending queries for teacher badge
     try {
       const { data } = await queryAPI.getAll()
       pendingQueryCount.value = (data.queries || []).filter(q => q.status === 'Pending').length
     } catch { /* ignore */ }
+    // Violation badge — today's violations
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const { data } = await otpAPI.getViolations({ date: today })
+      violationCount.value = data.count || 0
+    } catch { /* ignore */ }
+  }
+  if (isAdmin.value) {
+    // Admin violation badge — today's violations
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const { data } = await otpAPI.getViolations({ date: today })
+      violationCount.value = data.count || 0
+    } catch { /* ignore */ }
   }
   if (isStudent.value) {
-    // Unread announcements badge
     try {
       const { data } = await announcementAPI.getAll()
       unreadCount.value = (data.announcements || []).filter(a => !a.isRead).length
     } catch { /* ignore */ }
-    // Unseen teacher replies badge
     try {
       const { data } = await queryAPI.getAll()
       unseenReplyCount.value = (data.queries || []).filter(
@@ -316,6 +335,7 @@ const pageTitles = {
   '/admin/attendance':        'Attendance Records',
   '/admin/papers':            'Question Papers',
   '/admin/announcements':     'Announcements',
+  '/admin/violations':        'Violation Dashboard',
   '/teacher':                 'Teacher Dashboard',
   '/teacher/students':        'Manage Students',
   '/teacher/attendance':      'Mark Attendance',
@@ -324,6 +344,8 @@ const pageTitles = {
   '/teacher/announcements':   'Announcements',
   '/teacher/queries':         'Student Queries',
   '/teacher/class-overview':  'Class Overview',
+  '/teacher/violations':      'Violation Dashboard',
+  '/teacher/defaulters':      'Defaulter List',
   '/student':                 'Student Dashboard',
   '/student/attendance':      'My Attendance',
   '/student/notes':           'Study Notes',
@@ -347,6 +369,8 @@ const icons = {
   message:    `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`,
   overview:   `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
   profile:    `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
+  violation:  `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+  defaulter:  `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
 }
 
 const allAdminLinks = [
@@ -358,6 +382,7 @@ const allAdminLinks = [
   { to: '/admin/attendance',      label: 'Attendance',     icon: icons.attendance },
   { to: '/admin/papers',          label: 'Papers',         icon: icons.print      },
   { to: '/admin/announcements',   label: 'Announcements',  icon: icons.bell       },
+  { to: '/admin/violations',      label: 'Violations',     icon: icons.violation  },
 ]
 const allTeacherLinks = computed(() => {
   const base = [
@@ -372,6 +397,8 @@ const allTeacherLinks = computed(() => {
   if (teacherProfile.value?.isClassTeacher) {
     base.push({ to: '/teacher/class-overview', label: 'Class Overview', icon: icons.overview })
   }
+  base.push({ to: '/teacher/defaulters', label: 'Defaulters',  icon: icons.defaulter })
+  base.push({ to: '/teacher/violations', label: 'Violations',  icon: icons.violation })
   return base
 })
 const allStudentLinks = [

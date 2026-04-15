@@ -1,18 +1,18 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-surface-900 via-brand-900 to-brand-700 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-card-lg border border-surface-200 p-8">
       <div class="text-center mb-6">
-        <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div class="w-14 h-14 bg-orange-50 border border-orange-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
           <svg class="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
         </div>
-        <h2 class="text-xl font-bold text-gray-900">Change Your Password</h2>
-        <p class="text-sm text-gray-500 mt-1">Your password was reset. Please set a new one to continue.</p>
+        <h2 class="text-xl font-bold text-surface-900">Change Your Password</h2>
+        <p class="text-sm text-surface-500 mt-1">Your password was reset. Please set a new one to continue.</p>
       </div>
 
-      <div v-if="error" class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{{ error }}</div>
-      <div v-if="success" class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">{{ success }}</div>
+      <div v-if="error" class="mb-4 px-4 py-3 bg-danger-light border border-danger/20 rounded-xl text-sm text-danger-dark">{{ error }}</div>
+      <div v-if="success" class="mb-4 px-4 py-3 bg-success-light border border-success/20 rounded-xl text-sm text-success-dark">{{ success }}</div>
 
       <form @submit.prevent="submit" class="space-y-4">
         <div>

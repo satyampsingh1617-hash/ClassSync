@@ -33,27 +33,27 @@
 
       <!-- Subjects with OTP generation -->
       <div class="card mb-6">
-        <h3 class="text-base font-semibold text-gray-900 mb-4">My Subjects</h3>
+        <h3 class="text-base font-semibold text-surface-900 mb-4">My Subjects</h3>
         <div v-if="subjects.length" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <div
             v-for="sub in subjects"
             :key="sub._id"
-            class="border border-gray-200 rounded-xl p-4 hover:border-brand-300 hover:shadow-sm transition-all"
+            class="border border-surface-200 rounded-xl p-4 hover:border-brand-300 hover:shadow-card transition-all bg-white"
           >
             <div class="flex items-start justify-between mb-3">
               <div>
-                <h4 class="font-semibold text-gray-900">{{ sub.name }}</h4>
-                <span class="font-mono text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded mt-1 inline-block">{{ sub.code }}</span>
+                <h4 class="font-semibold text-surface-900">{{ sub.name }}</h4>
+                <span class="font-mono text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-lg border border-orange-200 mt-1 inline-block">{{ sub.code }}</span>
               </div>
-              <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">{{ sub.class }}</span>
+              <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-200">{{ sub.class }}</span>
             </div>
 
             <!-- OTP section -->
-            <div v-if="otpMap[sub._id]" class="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-              <p class="text-xs text-green-600 font-medium mb-1">Active OTP</p>
-              <p class="text-3xl font-bold text-green-700 tracking-widest text-center py-1">{{ otpMap[sub._id].code }}</p>
-              <p class="text-xs text-green-600 text-center">Expires: {{ formatExpiry(otpMap[sub._id].expiry) }}</p>
-              <p class="text-xs text-gray-500 text-center mt-1">{{ otpMap[sub._id].usedCount || 0 }} students marked</p>
+            <div v-if="otpMap[sub._id]" class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
+              <p class="text-xs text-emerald-700 font-semibold mb-1">Active OTP</p>
+              <p class="text-3xl font-bold text-emerald-700 tracking-widest text-center py-1">{{ otpMap[sub._id].code }}</p>
+              <p class="text-xs text-emerald-600 text-center">Expires: {{ formatExpiry(otpMap[sub._id].expiry) }}</p>
+              <p class="text-xs text-surface-500 text-center mt-1">{{ otpMap[sub._id].usedCount || 0 }} students marked</p>
             </div>
 
             <div class="flex gap-2">
@@ -73,16 +73,16 @@
             </div>
           </div>
         </div>
-        <p v-else class="text-sm text-gray-400 text-center py-8">No subjects assigned to you yet.</p>
+        <p v-else class="text-sm text-surface-400 text-center py-8">No subjects assigned to you yet.</p>
       </div>
 
       <!-- Recent attendance -->
       <div class="card">
-        <h3 class="text-base font-semibold text-gray-900 mb-4">Recent Attendance</h3>
+        <h3 class="text-base font-semibold text-surface-900 mb-4">Recent Attendance</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-surface-100">
                 <th class="table-th">Student</th>
                 <th class="table-th">Subject</th>
                 <th class="table-th">Date</th>
@@ -90,22 +90,22 @@
                 <th class="table-th">Method</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
-              <tr v-for="rec in recentRecords" :key="rec._id" class="hover:bg-gray-50">
-                <td class="table-td font-medium">{{ rec.studentId?.name }}</td>
-                <td class="table-td text-gray-500">{{ rec.subjectId?.code }}</td>
-                <td class="table-td text-gray-500">{{ rec.date }}</td>
+            <tbody class="divide-y divide-surface-50">
+              <tr v-for="rec in recentRecords" :key="rec._id" class="hover:bg-surface-50">
+                <td class="table-td font-medium text-surface-900">{{ rec.studentId?.name }}</td>
+                <td class="table-td text-surface-500">{{ rec.subjectId?.code }}</td>
+                <td class="table-td text-surface-500">{{ rec.date }}</td>
                 <td class="table-td">
                   <span :class="rec.status === 'Present' ? 'badge-present' : 'badge-absent'">{{ rec.status }}</span>
                 </td>
                 <td class="table-td">
-                  <span class="text-xs px-2 py-0.5 rounded-full" :class="rec.method === 'otp' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'">
+                  <span class="text-xs px-2 py-0.5 rounded-full" :class="rec.method === 'otp' ? 'bg-blue-50 text-blue-700' : 'bg-surface-100 text-surface-600'">
                     {{ rec.method }}
                   </span>
                 </td>
               </tr>
               <tr v-if="!recentRecords.length">
-                <td colspan="5" class="table-td text-center text-gray-400 py-6">No recent records</td>
+                <td colspan="5" class="table-td text-center text-surface-400 py-6">No recent records</td>
               </tr>
             </tbody>
           </table>
