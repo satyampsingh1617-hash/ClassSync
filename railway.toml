@@ -3,6 +3,6 @@ builder = "nixpacks"
 buildCommand = "npm install --prefix backend"
 
 [deploy]
-startCommand = "node backend/server.js"
+startCommand = "node server.js"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
