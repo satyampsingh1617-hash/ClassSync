@@ -1,10 +1,32 @@
 import axios from 'axios'
 
-// Production (Netlify): VITE_API_URL = Railway backend URL
-// Local dev: VITE_API_URL is empty → falls back to '/api' (Vite proxy → localhost:5000)
-const BASE_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim() !== '')
-  ? import.meta.env.VITE_API_URL
-  : '/api'
+// ── API Base URL ──────────────────────────────────────────────
+// .env.production sets VITE_API_URL for web (Netlify) builds.
+// For Android (Capacitor), VITE_API_URL is also set at build time
+// via the production env, so it always resolves to the Railway URL.
+// Fallback to /api only for local dev (Vite proxy → localhost:5000).
+const RAILWAY_URL = 'https://attendpro-backend-production-e76e.up.railway.app/api'
+
+const BASE_URL = (() => {
+  const env = import.meta.env.VITE_API_URL?.trim()
+  if (env) return env
+  // If no env var, check if we're running in a native WebView context
+  // androidScheme:https makes it https://localhost — detect by no real hostname
+  if (typeof window !== 'undefined') {
+    const proto = window.location.protocol
+    const host  = window.location.hostname
+    // file://, capacitor://, or https://localhost (Capacitor androidScheme)
+    if (
+      proto === 'file:' ||
+      proto === 'capacitor:' ||
+      (proto === 'https:' && host === 'localhost') ||
+      (proto === 'http:'  && host === 'localhost' && typeof window.Capacitor !== 'undefined')
+    ) {
+      return RAILWAY_URL
+    }
+  }
+  return '/api'
+})()
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -42,19 +64,22 @@ export const authAPI = {
 
 // ── Admin ─────────────────────────────────────────────────────
 export const adminAPI = {
-  dashboard: ()    => api.get('/admin/dashboard'),
-  users:     ()    => api.get('/admin/users'),
-  deleteUser:(id)  => api.delete(`/admin/users/${id}`),
-  classes:   ()    => api.get('/admin/classes'),   // admin: all classes | teacher: assigned classes
+  dashboard:     ()    => api.get('/admin/dashboard'),
+  users:         ()    => api.get('/admin/users'),
+  deleteUser:    (id)  => api.delete(`/admin/users/${id}`),
+  classes:       ()    => api.get('/admin/classes'),
+  resetStudents: (confirmText) => api.delete('/admin/reset-students', { data: { confirmText } }),
 }
 
 // ── Students ──────────────────────────────────────────────────
 export const studentAPI = {
   create:        (data)     => api.post('/students', data),
   teacherCreate: (data)     => api.post('/students/teacher-create', data),
-  bulkUpload:    (formData) => api.post('/students/bulk-upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  bulkUpload:    (formData, defaultClass) => api.post(
+    `/students/bulk-upload${defaultClass ? `?defaultClass=${encodeURIComponent(defaultClass)}` : ''}`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  ),
   getAll:        (params)   => api.get('/students', { params }),
   getById:       (id)       => api.get(`/students/${id}`),
   update:        (id, data) => api.put(`/students/${id}`, data),
@@ -94,10 +119,11 @@ export const attendanceAPI = {
 
 // ── OTP ───────────────────────────────────────────────────────
 export const otpAPI = {
-  generate:   (data)      => api.post('/otp/generate', data),   // data: { subjectId, topicName, timeSlot }
-  verify:     (data)      => api.post('/otp/verify', data),
-  getActive:  (subjectId) => api.get(`/otp/active/${subjectId}`),
-  deactivate: (id)        => api.post(`/otp/deactivate/${id}`),
+  generate:      (data)      => api.post('/otp/generate', data),
+  verify:        (data)      => api.post('/otp/verify', data),   // data includes optional lat/lng/isMockLocation
+  getActive:     (subjectId) => api.get(`/otp/active/${subjectId}`),
+  deactivate:    (id)        => api.post(`/otp/deactivate/${id}`),
+  getViolations: (params)    => api.get('/otp/violations', { params }),
 }
 
 // ── Notes ─────────────────────────────────────────────────────

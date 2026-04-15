@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
       <div>
-        <h2 class="text-lg font-bold text-gray-900">My Students</h2>
-        <p class="text-sm text-gray-500">
+        <h2 class="text-lg font-bold text-surface-900">My Students</h2>
+        <p class="text-sm text-surface-500">
           {{ filteredStudents.length }} students
           <span v-if="selectedClass"> in <strong>{{ selectedClass }}</strong></span>
           <span v-if="assignedClasses.length" class="ml-2 text-xs text-brand-600">
@@ -38,10 +38,10 @@
     </div>
 
     <!-- Search + Class filter -->
-    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-4 shadow-sm">
+    <div class="card mb-4">
       <div class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
           <input v-model="search" type="text" class="input pl-9" placeholder="Search by name or roll number..." />
@@ -52,96 +52,93 @@
         </select>
       </div>
 
-      <!-- Class chips — only assigned classes -->
+      <!-- Class chips -->
       <div class="flex flex-wrap gap-2 mt-3">
         <button
           @click="selectedClass = ''"
           :class="['px-3 py-1 rounded-full text-xs font-semibold border transition-all',
-            selectedClass === '' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500']"
+            selectedClass === '' ? 'bg-surface-800 text-white border-surface-800' : 'bg-white text-surface-600 border-surface-300 hover:border-surface-500']"
         >All</button>
         <button
           v-for="cls in assignedClasses" :key="cls"
           @click="selectedClass = cls"
           :class="['px-3 py-1 rounded-full text-xs font-semibold border transition-all',
-            selectedClass === cls ? classChipActive(cls) : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500']"
+            selectedClass === cls ? classChipActive(cls) : 'bg-white text-surface-600 border-surface-300 hover:border-surface-500']"
         >{{ cls }}</button>
       </div>
     </div>
 
-    <!-- Dark table -->
-    <div class="rounded-xl overflow-hidden shadow-lg border border-gray-800">
+    <!-- Light table -->
+    <div class="card p-0 overflow-hidden">
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-900">
+          <thead>
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">#</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Student</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Roll / Login</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Class</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Attendance</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
+              <th class="table-th">#</th>
+              <th class="table-th">Student</th>
+              <th class="table-th">Roll / Login</th>
+              <th class="table-th">Class</th>
+              <th class="table-th">Attendance</th>
+              <th class="table-th">Status</th>
+              <th class="table-th">Actions</th>
             </tr>
           </thead>
-          <tbody class="bg-gray-800 divide-y divide-gray-700">
+          <tbody class="divide-y divide-surface-100">
             <tr v-for="(s, i) in paginatedStudents" :key="s._id"
-              class="hover:bg-gray-750 transition-colors group">
-              <td class="px-4 py-3 text-sm text-gray-500">{{ (currentPage-1)*pageSize + i + 1 }}</td>
-              <td class="px-4 py-3">
+              class="hover:bg-surface-50 transition-colors group">
+              <td class="table-td text-surface-400">{{ (currentPage-1)*pageSize + i + 1 }}</td>
+              <td class="table-td">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                     :class="classAvatarColor(s.class)">
                     {{ s.name.charAt(0).toUpperCase() }}
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-white">{{ s.name }}</p>
-                    <p class="text-xs text-gray-400">{{ s.email || 'No email' }}</p>
+                    <p class="text-sm font-semibold text-surface-900">{{ s.name }}</p>
+                    <p class="text-xs text-surface-400">{{ s.email || 'No email' }}</p>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-3">
-                <span class="font-mono text-xs bg-gray-700 text-gray-200 px-2 py-1 rounded">{{ s.roll }}</span>
+              <td class="table-td">
+                <span class="font-mono text-xs bg-surface-100 text-surface-700 px-2 py-1 rounded-lg">{{ s.roll }}</span>
               </td>
-              <td class="px-4 py-3">
-                <span :class="['px-2 py-0.5 text-xs font-semibold rounded-full', classChipActive(s.class)]">
+              <td class="table-td">
+                <span :class="['px-2 py-0.5 text-xs font-semibold rounded-full border', classChipActive(s.class)]">
                   {{ s.class }}
                 </span>
               </td>
-              <td class="px-4 py-3">
+              <td class="table-td">
                 <div class="flex items-center gap-2 min-w-24">
-                  <div class="flex-1 bg-gray-700 rounded-full h-1.5">
+                  <div class="flex-1 bg-surface-100 rounded-full h-1.5">
                     <div
                       class="h-1.5 rounded-full transition-all"
-                      :class="parseFloat(s.attendance?.percentage) >= 75 ? 'bg-green-400' : 'bg-red-400'"
+                      :class="parseFloat(s.attendance?.percentage) >= 75 ? 'bg-emerald-500' : 'bg-red-400'"
                       :style="{ width: `${Math.min(100, s.attendance?.percentage || 0)}%` }"
                     ></div>
                   </div>
                   <span class="text-xs font-bold w-10 text-right"
-                    :class="parseFloat(s.attendance?.percentage) >= 75 ? 'text-green-400' : 'text-red-400'">
+                    :class="parseFloat(s.attendance?.percentage) >= 75 ? 'text-emerald-600' : 'text-red-500'">
                     {{ s.attendance?.percentage || '0.0' }}%
                   </span>
                 </div>
-                <p class="text-xs text-gray-500 mt-0.5">{{ s.attendance?.present || 0 }}/{{ s.attendance?.total || 0 }}</p>
+                <p class="text-xs text-surface-400 mt-0.5">{{ s.attendance?.present || 0 }}/{{ s.attendance?.total || 0 }}</p>
               </td>
-              <td class="px-4 py-3">
-                <span v-if="(s.attendance?.total || 0) === 0"
-                  class="px-2 py-0.5 text-xs rounded-full bg-gray-700 text-gray-400">No data</span>
-                <span v-else-if="parseFloat(s.attendance?.percentage) >= 75"
-                  class="px-2 py-0.5 text-xs rounded-full bg-green-900/50 text-green-400 border border-green-700">✓ Good</span>
-                <span v-else
-                  class="px-2 py-0.5 text-xs rounded-full bg-red-900/50 text-red-400 border border-red-700">⚠ Low</span>
+              <td class="table-td">
+                <span v-if="(s.attendance?.total || 0) === 0" class="chip-none">No data</span>
+                <span v-else-if="parseFloat(s.attendance?.percentage) >= 75" class="chip-good">Good</span>
+                <span v-else class="chip-low">Low</span>
               </td>
-              <td class="px-4 py-3">
+              <td class="table-td">
                 <button @click="openResetPwd(s)"
-                  class="text-orange-400 hover:text-orange-300 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  class="text-brand-600 hover:text-brand-800 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                   Reset Pwd
                 </button>
               </td>
             </tr>
             <tr v-if="!filteredStudents.length">
-              <td colspan="7" class="px-4 py-12 text-center text-gray-500">
-                <svg class="w-10 h-10 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <td colspan="7" class="table-td text-center text-surface-400 py-12">
+                <svg class="w-10 h-10 mx-auto mb-2 text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
                 {{ assignedClasses.length === 0 ? 'No classes assigned to you' : 'No students found' }}
@@ -152,15 +149,15 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="bg-gray-900 px-4 py-3 flex items-center justify-between border-t border-gray-700">
-        <p class="text-xs text-gray-400">
+      <div v-if="totalPages > 1" class="px-4 py-3 flex items-center justify-between border-t border-surface-100">
+        <p class="text-xs text-surface-500">
           Showing {{ (currentPage-1)*pageSize + 1 }}–{{ Math.min(currentPage*pageSize, filteredStudents.length) }}
           of {{ filteredStudents.length }}
         </p>
         <div class="flex gap-1">
           <button v-for="p in totalPages" :key="p" @click="currentPage = p"
-            :class="['w-7 h-7 rounded text-xs font-medium transition-colors',
-              p === currentPage ? 'bg-brand-600 text-white' : 'text-gray-400 hover:bg-gray-700']">
+            :class="['w-7 h-7 rounded-lg text-xs font-medium transition-colors',
+              p === currentPage ? 'bg-brand-500 text-white' : 'text-surface-500 hover:bg-surface-100']">
             {{ p }}
           </button>
         </div>
@@ -173,11 +170,11 @@
         <!-- Step indicators -->
         <div class="flex items-center gap-2">
           <div :class="['flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold',
-            uploadStep >= 1 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-500']">1</div>
-          <div :class="['flex-1 h-0.5', uploadStep >= 2 ? 'bg-brand-600' : 'bg-gray-200']"></div>
+            uploadStep >= 1 ? 'bg-brand-600 text-white' : 'bg-surface-100 text-surface-500']">1</div>
+          <div :class="['flex-1 h-0.5', uploadStep >= 2 ? 'bg-brand-600' : 'bg-surface-200']"></div>
           <div :class="['flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold',
-            uploadStep >= 2 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-500']">2</div>
-          <span class="text-xs text-gray-400 ml-1">{{ uploadStep === 1 ? 'Select Class' : 'Upload File' }}</span>
+            uploadStep >= 2 ? 'bg-brand-600 text-white' : 'bg-surface-100 text-surface-500']">2</div>
+          <span class="text-xs text-surface-400 ml-1">{{ uploadStep === 1 ? 'Select Class' : 'Upload File' }}</span>
         </div>
 
         <!-- Step 1: Select Class -->
@@ -213,9 +210,11 @@
           </div>
 
           <div class="p-3 bg-blue-50 rounded-lg border border-blue-100 text-xs text-blue-800 space-y-1">
-            <p class="font-semibold">Required Excel columns:</p>
-            <p>• <strong>Roll Number</strong> — becomes username &amp; password</p>
+            <p class="font-semibold">Required columns (all mandatory):</p>
             <p>• <strong>Name</strong> — student's full name</p>
+            <p>• <strong>Roll Number</strong> — becomes username &amp; password</p>
+            <p>• <strong>Mobile</strong> — student's mobile number</p>
+            <p class="text-blue-600 mt-1">💡 Accepted formats: .xlsx, .xls, .csv — Download the template below.</p>
           </div>
 
           <button @click="downloadTemplate" class="btn-secondary w-full justify-center text-xs">
@@ -224,12 +223,12 @@
 
           <div
             class="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors"
-            :class="selectedFile ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-brand-400'"
+            :class="selectedFile ? 'border-emerald-400 bg-emerald-50' : 'border-surface-300 hover:border-brand-400'"
             @click="fileInput.click()"
             @dragover.prevent
             @drop.prevent="e => { selectedFile = e.dataTransfer.files[0]; uploadResult=null }"
           >
-            <svg class="w-10 h-10 mx-auto mb-2" :class="selectedFile ? 'text-green-400' : 'text-gray-300'"
+            <svg class="w-10 h-10 mx-auto mb-2" :class="selectedFile ? 'text-emerald-400' : 'text-surface-300'"
               fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -237,8 +236,8 @@
             <p class="text-sm font-medium" :class="selectedFile ? 'text-green-700' : 'text-gray-500'">
               {{ selectedFile ? selectedFile.name : 'Click or drag & drop Excel file' }}
             </p>
-            <p class="text-xs text-gray-400 mt-1">.xlsx or .xls — max 5 MB</p>
-            <input ref="fileInput" type="file" accept=".xlsx,.xls" class="hidden"
+            <p class="text-xs text-gray-400 mt-1">.xlsx, .xls or .csv — max 5 MB</p>
+            <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden"
               @change="e => { selectedFile=e.target.files[0]; uploadResult=null }" />
           </div>
 
@@ -401,19 +400,25 @@ const paginatedStudents = computed(() => {
 })
 watch([search, selectedClass], () => { currentPage.value = 1 })
 
-// Class chip colors
+// Class chip colors — light
 const classColors = {
-  FYCS: 'bg-blue-600 text-white', FYIT: 'bg-indigo-600 text-white',
-  SYCS: 'bg-purple-600 text-white', SYIT: 'bg-violet-600 text-white',
-  TYCS: 'bg-emerald-600 text-white', TYIT: 'bg-teal-600 text-white',
+  FYCS: 'bg-blue-100 text-blue-700 border-blue-200',
+  FYIT: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  SYCS: 'bg-purple-100 text-purple-700 border-purple-200',
+  SYIT: 'bg-violet-100 text-violet-700 border-violet-200',
+  TYCS: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  TYIT: 'bg-teal-100 text-teal-700 border-teal-200',
 }
-const classChipActive  = (cls) => classColors[cls] || 'bg-gray-600 text-white'
+const classChipActive  = (cls) => classColors[cls] || 'bg-surface-100 text-surface-600 border-surface-200'
 const classAvatarColors = {
-  FYCS: 'bg-blue-900 text-blue-300', FYIT: 'bg-indigo-900 text-indigo-300',
-  SYCS: 'bg-purple-900 text-purple-300', SYIT: 'bg-violet-900 text-violet-300',
-  TYCS: 'bg-emerald-900 text-emerald-300', TYIT: 'bg-teal-900 text-teal-300',
+  FYCS: 'bg-blue-100 text-blue-700',
+  FYIT: 'bg-indigo-100 text-indigo-700',
+  SYCS: 'bg-purple-100 text-purple-700',
+  SYIT: 'bg-violet-100 text-violet-700',
+  TYCS: 'bg-emerald-100 text-emerald-700',
+  TYIT: 'bg-teal-100 text-teal-700',
 }
-const classAvatarColor = (cls) => classAvatarColors[cls] || 'bg-gray-700 text-gray-300'
+const classAvatarColor = (cls) => classAvatarColors[cls] || 'bg-surface-100 text-surface-600'
 
 const fetchStudents = async () => {
   loading.value = true
@@ -450,7 +455,7 @@ const submitUpload = async () => {
     const fd = new FormData()
     fd.append('file', selectedFile.value)
     fd.append('defaultClass', defaultClass.value)
-    const { data } = await studentAPI.bulkUpload(fd)
+    const { data } = await studentAPI.bulkUpload(fd, defaultClass.value)
     uploadResult.value = { ...data.summary, errors: data.errors || [] }
     showAlert(data.message, data.success ? 'success' : 'warning')
   } catch (e) {
@@ -459,12 +464,22 @@ const submitUpload = async () => {
 }
 
 const downloadTemplate = () => {
-  const csv = `Roll Number,Name\nCS2024001,Rahul Sharma\nCS2024002,Priya Patel`
+  // Build a proper Excel file with the 3 required columns + sample data
+  const rows = [
+    ['Name', 'Roll Number', 'Mobile'],
+    ['Rahul Sharma',  'CS2024001', '9876543210'],
+    ['Priya Patel',   'CS2024002', '9876543211'],
+    ['Amit Verma',    'CS2024003', '9876543212'],
+  ]
+  // Create CSV with correct headers
+  const csv = rows.map(r => r.join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(new Blob([csv], { type:'text/csv' })),
-    download: 'student_template.csv'
+    href: URL.createObjectURL(blob),
+    download: 'student_upload_template.csv',
   })
-  a.click(); URL.revokeObjectURL(a.href)
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 
 // Manual add
