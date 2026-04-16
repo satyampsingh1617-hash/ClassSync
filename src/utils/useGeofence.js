@@ -1,15 +1,16 @@
 /**
  * useGeofence — Vue composable for permission-first location + geofence logic.
- * Campus: RKT College gate  19.227770, 73.161263  |  Radius: 100m
+ * Campus: RKT College gate (Updated) | Coordinates: 19.227926, 73.161258 | Radius: 160m
  */
 
-const CAMPUS_LAT    = 19.227770
-const CAMPUS_LNG    = 73.161263
-const CAMPUS_RADIUS = 100       // metres
-const GPS_TIMEOUT   = 10000     // 10 seconds
+const CAMPUS_LAT    = 19.227926
+const CAMPUS_LNG    = 73.161258
+const CAMPUS_RADIUS = 160       // metres — must be within 160m of campus gate
+const GPS_TIMEOUT   = 15000     // Increase timeout for better stability
 
+// Returns distance in METRES between two lat/lng points
 function haversine(lat1, lng1, lat2, lng2) {
-  const R  = 6371000
+  const R  = 6371000  // Earth radius in metres
   const p1 = (lat1 * Math.PI) / 180
   const p2 = (lat2 * Math.PI) / 180
   const dp = ((lat2 - lat1) * Math.PI) / 180
@@ -25,45 +26,122 @@ export class GeofenceError extends Error {
   }
 }
 
-import { Geolocation } from '@capacitor/geolocation';
+/** True when running inside the Capacitor native shell (Android/iOS app) */
+const isNativeApp = () =>
+  typeof window !== 'undefined' &&
+  !!(window.Capacitor?.isNativePlatform?.() || window.Capacitor?.platform)
 
+// ── Native path (Capacitor) ───────────────────────────────────────────────────
+async function requestLocationNative() {
+  const { Geolocation } = await import('@capacitor/geolocation')
+
+  // Always check current status first
+  let permStatus = await Geolocation.checkPermissions()
+
+  if (permStatus.location === 'denied') {
+    throw new GeofenceError(
+      'PERMISSION_DENIED',
+      'Location permission denied. Please allow location access in your phone settings.'
+    )
+  }
+
+  if (permStatus.location !== 'granted') {
+    permStatus = await Geolocation.requestPermissions({ permissions: ['location'] })
+  }
+
+  if (permStatus.location !== 'granted') {
+    throw new GeofenceError(
+      'PERMISSION_DENIED',
+      'Location permission denied. Please allow location access in your phone settings.'
+    )
+  }
+
+  let position;
+  try {
+    // Attempt 1: High Accuracy (GPS)
+    position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: GPS_TIMEOUT,
+    });
+  } catch (e) {
+    try {
+      // Attempt 2: Fallback to Network (Cell/Wi-Fi)
+      console.warn("GPS failed, trying network location...");
+      position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 10000,
+      });
+    } catch (e2) {
+      if (e2.message?.toLowerCase().includes('location disabled') || e2.message?.toLowerCase().includes('gps')) {
+        throw new GeofenceError('GPS_OFF', 'Your phone\'s Location Services (GPS) are turned off. Please turn them on in settings.');
+      }
+      throw new GeofenceError('TIMEOUT', 'Poor GPS signal. Please move to an open area or outdoors and try again.');
+    }
+  }
+
+  const { latitude, longitude, accuracy } = position.coords;
+  const isMockLocation = !!(position.coords.isMockLocation) || false;
+  const isProxy = false
+  const distance = haversine(CAMPUS_LAT, CAMPUS_LNG, latitude, longitude)  // metres
+
+  return { latitude, longitude, accuracy, isMockLocation, isProxy, distance, insideCampus: distance <= CAMPUS_RADIUS }
+}
+
+// ── Web path (browser navigator.geolocation) ─────────────────────────────────
+function requestLocationWeb() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new GeofenceError('POSITION_ERROR', 'Geolocation is not supported by your browser.'))
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords
+        const isMockLocation = false
+        const isProxy = false
+        const distance = haversine(CAMPUS_LAT, CAMPUS_LNG, latitude, longitude)  // metres
+        resolve({
+          latitude,
+          longitude,
+          accuracy,
+          isMockLocation,
+          isProxy,
+          distance,
+          insideCampus: distance <= CAMPUS_RADIUS,
+        })
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          reject(new GeofenceError(
+            'PERMISSION_DENIED',
+            'Location permission denied. Please allow location access in your browser settings.'
+          ))
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          reject(new GeofenceError('GPS_OFF', 'Location unavailable. Please enable GPS.'))
+        } else if (err.code === err.TIMEOUT) {
+          reject(new GeofenceError('TIMEOUT', 'Poor GPS signal. Move to an open area and try again.'))
+        } else {
+          reject(new GeofenceError('POSITION_ERROR', 'Could not determine your location. Please try again.'))
+        }
+      },
+      { enableHighAccuracy: true, timeout: GPS_TIMEOUT, maximumAge: 0 }
+    )
+  })
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
 export async function requestLocation() {
   try {
-    // Check/Request permissions natively
-    const permStatus = await Geolocation.requestPermissions();
-    if (permStatus.location === 'denied') {
-      throw new GeofenceError('PERMISSION_DENIED', 'Location permission denied. Please allow location access in your phone settings.');
+    if (isNativeApp()) {
+      return await requestLocationNative()
+    } else {
+      return await requestLocationWeb()
     }
-
-    // Fetch position natively (bypasses browser WebView restrictions)
-    const position = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: GPS_TIMEOUT
-    });
-
-    const { latitude, longitude, accuracy } = position.coords;
-
-    // Capacitor marks mock locations automatically on Android
-    const isMockLocation = position.coords.isMockLocation || (accuracy === 0);
-    const isProxy = false;
-
-    const distance = haversine(CAMPUS_LAT, CAMPUS_LNG, latitude, longitude);
-    const insideCampus = distance <= CAMPUS_RADIUS;
-
-    return { latitude, longitude, accuracy, isMockLocation, isProxy, distance, insideCampus };
   } catch (err) {
-    if (err instanceof GeofenceError) throw err;
-
-    // Map Capacitor errors to your existing UI codes
-    if (err.message?.includes('denied')) {
-      throw new GeofenceError('PERMISSION_DENIED', 'Location permission denied.');
-    } else if (err.message?.includes('location disabled') || err.message?.includes('GPS')) {
-      throw new GeofenceError('GPS_OFF', 'Please enable GPS / Location Services on your phone.');
-    } else if (err.message?.includes('timeout')) {
-      throw new GeofenceError('TIMEOUT', 'Poor GPS signal. Please move to an open area and try again.');
-    }
-
-    throw new GeofenceError('POSITION_ERROR', 'Could not determine your location. Please try again.');
+    if (err instanceof GeofenceError) throw err
+    console.error("Location engine error:", err);
+    throw new GeofenceError('POSITION_ERROR', 'Location Error: ' + (err.message || 'Please check your GPS settings and try again.'));
   }
 }
 

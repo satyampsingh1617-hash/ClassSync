@@ -351,6 +351,8 @@ const deleteRecord = async (id) => {
     await attendanceAPI.delete(id)
     showAlert('Record deleted')
     fetchRecords()
+    // Also refresh report if it's currently visible so stale data isn't shown
+    if (showReport.value) fetchReport()
   } catch { showAlert('Delete failed','error') }
 }
 

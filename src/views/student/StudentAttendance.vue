@@ -137,10 +137,10 @@ const filteredRecords = computed(() => {
   const allRecords = bySubject.value.flatMap(s => s.records || [])
   const sorted = [...allRecords].sort((a, b) => b.date.localeCompare(a.date))
   if (!activeSubject.value) return sorted
-  // Match by populated _id string OR raw ObjectId string
+  // Match by populated _id string OR raw ObjectId string — safely handle undefined
   return sorted.filter(r => {
-    const subId = r.subjectId?._id?.toString() || r.subjectId?.toString()
-    return subId === activeSubject.value
+    const subId = r.subjectId?._id || r.subjectId
+    return subId && subId.toString() === activeSubject.value
   })
 })
 

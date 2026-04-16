@@ -333,7 +333,9 @@ const onSubjectChange = async () => {
       // Restore active OTP if one exists
       if (otpRes.data.otp) {
         activeOtp.value = otpRes.data.otp
-        otpTotalTime.value = 120
+        otpTotalTime.value = otpRes.data.otp.expiryMinutes
+          ? otpRes.data.otp.expiryMinutes * 60
+          : 120
         startTimer(otpRes.data.otp.expiry)
       }
     }
@@ -368,7 +370,7 @@ const generateOTP = async () => {
 const deactivateOTP = async () => {
   if (!activeOtp.value) return
   try {
-    await otpAPI.deactivate(activeOtp.value.id)
+    await otpAPI.deactivate(activeOtp.value._id || activeOtp.value.id)
     activeOtp.value = null
     clearInterval(timerInterval)
     showAlert('OTP stopped')
@@ -414,7 +416,10 @@ const submitBulk = async () => {
       timeSlot:  timeSlot.value,
       records,
     })
-    showAlert(`✓ Saved — ${data.results.success.length} students updated${data.results.failed.length ? `, ${data.results.failed.length} failed` : ''}`)
+    // Safely access results — backend may return different shapes
+    const successCount = data.results?.success?.length ?? data.results?.saved ?? records.length
+    const failedCount  = data.results?.failed?.length  ?? data.results?.errors ?? 0
+    showAlert(`✓ Saved — ${successCount} students updated${failedCount ? `, ${failedCount} failed` : ''}`)
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to save attendance', 'error')
   } finally { submitting.value = false }

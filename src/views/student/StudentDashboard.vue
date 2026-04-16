@@ -161,52 +161,61 @@
           :class="{
             'bg-amber-50 border-amber-200': locationError.code === 'PERMISSION_DENIED',
             'bg-orange-50 border-orange-200': locationError.code === 'TIMEOUT',
-            'bg-red-50 border-red-200': locationError.code === 'GPS_OFF' || locationError.code === 'SPOOF',
-            'bg-surface-50 border-surface-200': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF'].includes(locationError.code),
+            'bg-red-50 border-red-200': locationError.code === 'GPS_OFF' || locationError.code === 'SPOOF' || locationError.code === 'OUT_OF_BOUNDS',
+            'bg-surface-50 border-surface-200': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF','OUT_OF_BOUNDS'].includes(locationError.code),
           }">
           <div class="flex items-start gap-3">
             <span class="text-2xl flex-shrink-0 mt-0.5">
-              {{ { PERMISSION_DENIED: '🔒', TIMEOUT: '📡', GPS_OFF: '📍', SPOOF: '🚫' }[locationError.code] || '⚠️' }}
+              {{ { PERMISSION_DENIED: '🔒', TIMEOUT: '📡', GPS_OFF: '📍', SPOOF: '🚫', OUT_OF_BOUNDS: '📍' }[locationError.code] || '⚠️' }}
             </span>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-bold"
                 :class="{
                   'text-amber-800': locationError.code === 'PERMISSION_DENIED',
                   'text-orange-800': locationError.code === 'TIMEOUT',
-                  'text-red-800': ['GPS_OFF','SPOOF'].includes(locationError.code),
-                  'text-surface-800': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF'].includes(locationError.code),
+                  'text-red-800': ['GPS_OFF','SPOOF','OUT_OF_BOUNDS'].includes(locationError.code),
+                  'text-surface-800': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF','OUT_OF_BOUNDS'].includes(locationError.code),
                 }">
                 {{ {
                   PERMISSION_DENIED: 'Location Permission Required',
                   TIMEOUT: 'Poor GPS Signal',
                   GPS_OFF: 'GPS / Location Services Off',
                   SPOOF: 'Security Check Failed',
+                  OUT_OF_BOUNDS: 'Outside Campus Boundary',
                 }[locationError.code] || 'Location Error' }}
               </p>
               <p class="text-xs mt-1 leading-relaxed"
                 :class="{
                   'text-amber-700': locationError.code === 'PERMISSION_DENIED',
                   'text-orange-700': locationError.code === 'TIMEOUT',
-                  'text-red-700': ['GPS_OFF','SPOOF'].includes(locationError.code),
-                  'text-surface-600': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF'].includes(locationError.code),
+                  'text-red-700': ['GPS_OFF','SPOOF','OUT_OF_BOUNDS'].includes(locationError.code),
+                  'text-surface-600': !['PERMISSION_DENIED','TIMEOUT','GPS_OFF','SPOOF','OUT_OF_BOUNDS'].includes(locationError.code),
                 }">
                 {{ locationError.message }}
               </p>
               <!-- Settings deep-link for permission denied -->
-              <button v-if="locationError.code === 'PERMISSION_DENIED'"
-                @click="openAppSettings"
-                class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                Open App Settings
-              </button>
-              <button v-else
-                @click="locationError = null"
-                class="mt-2 text-xs font-semibold underline opacity-60 hover:opacity-100">
-                Dismiss
-              </button>
+              <div class="flex items-center gap-2 flex-wrap mt-2">
+                <button v-if="locationError.code === 'PERMISSION_DENIED'"
+                  @click="openAppSettings"
+                  class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  Open App Settings
+                </button>
+                <!-- Retry button for all non-spoof errors -->
+                <button v-if="locationError.code !== 'SPOOF'"
+                  @click="locationError = null"
+                  class="text-xs font-semibold underline opacity-60 hover:opacity-100">
+                  Try Again
+                </button>
+                <button v-else
+                  @click="locationError = null"
+                  class="text-xs font-semibold underline opacity-60 hover:opacity-100">
+                  Dismiss
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -295,7 +304,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            Your location will be verified when you submit. You must be within 100m of campus.
+            Your location will be verified when you submit. You must be within 160m of campus.
           </div>
         </div>
       </div>
@@ -364,7 +373,7 @@ import AppLayout from '../../components/AppLayout.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import { studentAPI, subjectAPI, otpAPI } from '../../services/api'
-import { requestLocation, GeofenceError } from '../../utils/useGeofence.js'
+import { requestLocation, GeofenceError, CAMPUS_RADIUS } from '../../utils/useGeofence.js'
 
 ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController)
 
@@ -448,7 +457,8 @@ const openAppSettings = () => {
 // Step 1: Get location → Step 2: Verify OTP with coords
 const handleSubmitOTP = async () => {
   if (!otpForm.value.code || otpForm.value.code.length < 6 || !otpForm.value.subjectId) return
-  if (verifying.value || fetchingLocation.value) return  // prevent double-tap
+  // Single guard covers both GPS and API phases — prevents any double-tap
+  if (verifying.value || fetchingLocation.value) return
 
   locationError.value = null
   otpAlert.value = { msg: '', type: 'success' }
@@ -460,7 +470,6 @@ const handleSubmitOTP = async () => {
   try {
     locationData = await requestLocation()
   } catch (err) {
-    fetchingLocation.value = false
     if (err instanceof GeofenceError) {
       locationError.value = { code: err.code, message: err.message }
     } else {
@@ -497,8 +506,8 @@ const handleSubmitOTP = async () => {
     const errMsg  = e.response?.data?.message || 'Invalid or expired OTP'
 
     if (errCode === 'OUT_OF_BOUNDS') {
-      const dist  = e.response?.data?.distance
-      const limit = e.response?.data?.limit
+      const dist  = e.response?.data?.distance ?? locationData.distance
+      const limit = e.response?.data?.limit ?? CAMPUS_RADIUS
       locationError.value = {
         code: 'OUT_OF_BOUNDS',
         message: `You are ${dist}m from campus. Must be within ${limit}m to mark attendance.`,
