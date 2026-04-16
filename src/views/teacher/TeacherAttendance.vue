@@ -331,12 +331,13 @@ const onSubjectChange = async () => {
       students.value.forEach(s => { attendance.value[s._id] = 'Present' })
 
       // Restore active OTP if one exists
-      if (otpRes.data.otp) {
-        activeOtp.value = otpRes.data.otp
-        otpTotalTime.value = otpRes.data.otp.expiryMinutes
-          ? otpRes.data.otp.expiryMinutes * 60
-          : 120
-        startTimer(otpRes.data.otp.expiry)
+      // Backend getActive returns: { success, data: otpDoc }
+      if (otpRes.data.data) {
+        const otp = otpRes.data.data
+        activeOtp.value = { code: otp.code, _id: otp._id, topicName: otp.topicName, timeSlot: otp.timeSlot, usedCount: otp.usedBy?.length || 0 }
+        const expiryMs = new Date(otp.expiry) - Date.now()
+        otpTotalTime.value = Math.max(0, Math.floor(expiryMs / 1000))
+        startTimer(otp.expiry)
       }
     }
   } catch { showAlert('Failed to load students', 'error') }
@@ -357,10 +358,11 @@ const generateOTP = async () => {
       timeSlot:  timeSlot.value,
     })
     if (data.success) {
-      activeOtp.value    = { ...data.otp, usedCount: 0 }
-      otpTotalTime.value = data.otp.expiryMinutes * 60
-      startTimer(data.otp.expiry)
-      showAlert(`OTP generated — valid for ${data.otp.expiryMinutes} min`)
+      // Backend generate returns: { success, code, expiresAt }
+      activeOtp.value    = { code: data.code, _id: null, topicName: topicName.value, timeSlot: timeSlot.value, usedCount: 0 }
+      otpTotalTime.value = 600 // 10 min in seconds
+      startTimer(data.expiresAt)
+      showAlert(`OTP generated: ${data.code} — valid for 10 min`)
     }
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to generate OTP', 'error')
