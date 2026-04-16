@@ -3,9 +3,9 @@
  * Campus: RKT College gate (Updated) | Coordinates: 19.227926, 73.161258 | Radius: 300m
  */
 
-const CAMPUS_LAT    = 19.227926
-const CAMPUS_LNG    = 73.161258
-const CAMPUS_RADIUS = 300       // metres — must be within 300m of campus gate
+const CAMPUS_LAT    = 19.22877599529906
+const CAMPUS_LNG    = 73.16150695815026
+const CAMPUS_RADIUS = 500       // metres — must be within 500m of campus
 const GPS_TIMEOUT   = 15000     // Increase timeout for better stability
 
 // Returns distance in METRES between two lat/lng points
