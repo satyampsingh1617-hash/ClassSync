@@ -223,7 +223,15 @@
               <td class="table-td">
                 <span class="font-mono text-xs bg-surface-100 text-surface-700 px-2 py-0.5 rounded-lg">{{ s.roll }}</span>
               </td>
-              <td class="table-td font-medium text-surface-900">{{ s.name }}</td>
+              <td class="table-td">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-surface-900">{{ s.name }}</span>
+                  <span v-if="otpMarked.has(s._id)"
+                    class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold flex-shrink-0">
+                    📱 OTP
+                  </span>
+                </div>
+              </td>
               <td class="table-td">
                 <div class="flex items-center justify-center gap-2">
                   <button
@@ -240,6 +248,7 @@
                       : 'border-surface-200 text-surface-400 hover:border-red-400 hover:text-red-600'"
                     class="w-9 h-8 rounded-xl text-xs font-bold border-2 transition-all"
                   >A</button>
+                  <span v-if="!attendance[s._id]" class="text-xs text-surface-300">—</span>
                 </div>
               </td>
             </tr>
@@ -280,6 +289,7 @@ const topicName       = ref('')
 const timeSlot        = ref('')
 const studentSearch   = ref('')
 const attendance      = ref({})
+const otpMarked       = ref(new Set()) // student IDs who marked via OTP
 const activeOtp       = ref(null)
 const otpTimer        = ref(0)
 const otpTotalTime    = ref(120)
@@ -319,7 +329,8 @@ const onSubjectChange = async () => {
   if (!selectedSubject.value) { students.value = []; activeOtp.value = null; stopPolling(); return }
   loadingStudents.value = true
   attendance.value = {}
-  activeOtp.value = null
+  otpMarked.value  = new Set()
+  activeOtp.value  = null
   clearInterval(timerInterval)
   stopPolling()
   try {
@@ -331,8 +342,8 @@ const onSubjectChange = async () => {
         attendanceAPI.getAll({ subjectId: selectedSubject.value, date: selectedDate.value }),
       ])
       students.value = studRes.data.students
-      // Default all to Present, then override with existing records
-      students.value.forEach(s => { attendance.value[s._id] = 'Present' })
+      // Start with no marks — only fill in what's already recorded
+      students.value.forEach(s => { attendance.value[s._id] = '' })
       syncAttendanceFromRecords(attRes.data.records || [])
 
       // Restore active OTP if one exists
@@ -418,7 +429,10 @@ const syncAttendanceFromRecords = (records) => {
   records.forEach(rec => {
     // studentId can be a populated object or a plain string ID
     const sid = rec.studentId?._id?.toString() || rec.studentId?.toString()
-    if (sid) attendance.value[sid] = rec.status
+    if (!sid) return
+    attendance.value[sid] = rec.status
+    // Track OTP-marked students for visual indicator
+    if (rec.method === 'otp') otpMarked.value.add(sid)
   })
 }
 
