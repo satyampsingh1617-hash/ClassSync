@@ -443,30 +443,8 @@ const doneOTP = async () => {
     clearInterval(timerInterval)
     stopPolling()
 
-    // 2. Final sync — get latest attendance records
-    const attRes = await attendanceAPI.getAll({
-      subjectId: selectedSubject.value,
-      date:      selectedDate.value,
-    })
-    syncAttendanceFromRecords(attRes.data.records || [])
-
-    // 3. Mark all still-unmarked students as Absent
-    const unmarkedStudents = students.value.filter(s => !attendance.value[s._id])
-    if (unmarkedStudents.length) {
-      const records = unmarkedStudents.map(s => ({ studentId: s._id, status: 'Absent' }))
-      await attendanceAPI.markBulk({
-        subjectId: selectedSubject.value,
-        date:      selectedDate.value,
-        topicName: topicName.value,
-        timeSlot:  timeSlot.value,
-        records,
-      })
-      // Update local state
-      unmarkedStudents.forEach(s => { attendance.value[s._id] = 'Absent' })
-      showAlert(`Done! ${unmarkedStudents.length} absent student${unmarkedStudents.length !== 1 ? 's' : ''} marked automatically.`, 'success')
-    } else {
-      showAlert('Done! All students were already marked.', 'success')
-    }
+    // 2. Mark all unmarked as Absent
+    await autoMarkAbsent()
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to complete attendance', 'error')
   } finally { doneLoading.value = false }
@@ -481,16 +459,45 @@ const copyOTP = () => {
 
 const startTimer = (expiry) => {
   clearInterval(timerInterval)
-  timerInterval = setInterval(() => {
+  timerInterval = setInterval(async () => {
     const remaining = Math.max(0, Math.floor((new Date(expiry) - Date.now()) / 1000))
     otpTimer.value = remaining
     if (remaining === 0) {
       clearInterval(timerInterval)
-      activeOtp.value = null
       stopPolling()
-      showAlert('OTP expired', 'warning')
+      showAlert('OTP expired — marking absent students...', 'warning')
+      // Auto-mark unmarked students as absent on expiry
+      await autoMarkAbsent()
+      activeOtp.value = null
     }
   }, 1000)
+}
+
+// ── Auto-mark all unmarked students as Absent ─────────────────
+const autoMarkAbsent = async () => {
+  if (!selectedSubject.value || !students.value.length) return
+  try {
+    // Get latest records first
+    const attRes = await attendanceAPI.getAll({
+      subjectId: selectedSubject.value,
+      date:      selectedDate.value,
+    })
+    syncAttendanceFromRecords(attRes.data.records || [])
+
+    const unmarkedStudents = students.value.filter(s => !attendance.value[s._id])
+    if (!unmarkedStudents.length) return
+
+    const records = unmarkedStudents.map(s => ({ studentId: s._id, status: 'Absent' }))
+    await attendanceAPI.markBulk({
+      subjectId: selectedSubject.value,
+      date:      selectedDate.value,
+      topicName: topicName.value,
+      timeSlot:  timeSlot.value,
+      records,
+    })
+    unmarkedStudents.forEach(s => { attendance.value[s._id] = 'Absent' })
+    showAlert(`${unmarkedStudents.length} unmarked student${unmarkedStudents.length !== 1 ? 's' : ''} marked Absent.`, 'success')
+  } catch { /* silent */ }
 }
 
 // ── Sync attendance records from backend into local state ─────
