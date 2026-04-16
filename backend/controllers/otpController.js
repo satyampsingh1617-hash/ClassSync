@@ -11,14 +11,16 @@ const getTodayDate = () => new Date().toISOString().split("T")[0];
  */
 exports.generateOTP = async (req, res) => {
   try {
-    const { subjectId, topicName, timeSlot } = req.body;
+    const { subjectId, topicName, timeSlot, expiryMinutes } = req.body;
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Deactivate any previous active OTPs for this subject
     await OTP.updateMany({ subjectId, isActive: true }, { isActive: false });
 
-    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    // Teacher can set expiry between 1 and 30 minutes (default 10)
+    const mins   = Math.min(30, Math.max(1, parseInt(expiryMinutes) || 10));
+    const expiry = new Date(Date.now() + mins * 60 * 1000);
 
     const newOTP = await OTP.create({
       code,
@@ -31,7 +33,12 @@ exports.generateOTP = async (req, res) => {
       timeSlot:   timeSlot  || "",
     });
 
-    res.status(201).json({ success: true, code: newOTP.code, expiresAt: expiry });
+    res.status(201).json({
+      success:        true,
+      code:           newOTP.code,
+      expiresAt:      expiry,
+      expiryMinutes:  mins,
+    });
   } catch (error) {
     console.error("generateOTP:", error.message);
     res.status(500).json({ success: false, message: error.message });

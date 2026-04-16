@@ -57,7 +57,7 @@
       <!-- No active OTP -->
       <div v-if="!activeOtp" class="card border-2 border-dashed border-surface-200">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
+          <div class="flex-1">
             <h3 class="font-bold text-surface-900 flex items-center gap-2">
               <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
@@ -68,6 +68,20 @@
             <p v-if="!topicName || !timeSlot" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mt-2 inline-block">
               💡 Tip: Fill Topic Name &amp; Time Slot above for better tracking
             </p>
+            <!-- Expiry selector -->
+            <div class="mt-3 flex items-center gap-3 flex-wrap">
+              <span class="text-xs font-semibold text-surface-500">OTP valid for:</span>
+              <div class="flex gap-1.5 flex-wrap">
+                <button v-for="m in [2, 5, 10, 15, 20, 30]" :key="m"
+                  @click="otpExpiryMins = m"
+                  :class="otpExpiryMins === m
+                    ? 'bg-brand-500 text-white border-brand-500'
+                    : 'bg-white text-surface-600 border-surface-200 hover:border-brand-300 hover:text-brand-600'"
+                  class="px-3 py-1 rounded-lg text-xs font-bold border transition-all">
+                  {{ m }}m
+                </button>
+              </div>
+            </div>
           </div>
           <button
             @click="generateOTP"
@@ -81,7 +95,7 @@
             <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-            {{ generatingOtp ? 'Generating...' : 'Generate OTP' }}
+            {{ generatingOtp ? 'Generating...' : `Generate OTP (${otpExpiryMins}m)` }}
           </button>
         </div>
       </div>
@@ -151,8 +165,18 @@
                 <span class="text-xs text-surface-400 -mt-0.5">sec</span>
               </div>
             </div>
-            <button @click="deactivateOTP" class="btn-danger text-xs py-1.5 px-3">
-              Stop OTP
+            <button @click="doneOTP" :disabled="doneLoading" class="btn-success text-xs py-1.5 px-4">
+              <svg v-if="doneLoading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+              {{ doneLoading ? 'Saving...' : 'Done' }}
+            </button>
+            <button @click="deactivateOTP" class="btn-secondary text-xs py-1.5 px-3 text-surface-500">
+              Stop
             </button>
           </div>
         </div>
@@ -287,15 +311,17 @@ const selectedSubject = ref('')
 const selectedDate    = ref(new Date().toISOString().split('T')[0])
 const topicName       = ref('')
 const timeSlot        = ref('')
+const otpExpiryMins   = ref(10)  // teacher-chosen expiry in minutes
 const studentSearch   = ref('')
 const attendance      = ref({})
 const otpMarked       = ref(new Set()) // student IDs who marked via OTP
 const activeOtp       = ref(null)
 const otpTimer        = ref(0)
-const otpTotalTime    = ref(120)
+const otpTotalTime    = ref(600)
 const loadingStudents = ref(false)
 const generatingOtp   = ref(false)
 const submitting      = ref(false)
+const doneLoading     = ref(false)
 const alert           = ref({ msg: '', type: 'success' })
 let timerInterval     = null
 let pollInterval      = null   // polls attendance when OTP is active
@@ -370,20 +396,21 @@ const generateOTP = async () => {
   generatingOtp.value = true
   try {
     const { data } = await otpAPI.generate({
-      subjectId: selectedSubject.value,
-      topicName: topicName.value,
-      timeSlot:  timeSlot.value,
+      subjectId:     selectedSubject.value,
+      topicName:     topicName.value,
+      timeSlot:      timeSlot.value,
+      expiryMinutes: otpExpiryMins.value,
     })
     if (data.success) {
-      // Backend generate returns: { success, code, expiresAt }
       // Fetch the real OTP doc to get _id for deactivation
       const otpRes = await otpAPI.getActive(selectedSubject.value)
       const otpId  = otpRes.data.data?._id || null
+      const totalSecs = (data.expiryMinutes || otpExpiryMins.value) * 60
       activeOtp.value    = { code: data.code, _id: otpId, topicName: topicName.value, timeSlot: timeSlot.value, usedCount: 0 }
-      otpTotalTime.value = 600 // 10 min in seconds
+      otpTotalTime.value = totalSecs
       startTimer(data.expiresAt)
       startPolling()
-      showAlert(`OTP generated: ${data.code} — valid for 10 min`)
+      showAlert(`OTP generated: ${data.code} — valid for ${data.expiryMinutes} min`)
     }
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to generate OTP', 'error')
@@ -401,6 +428,48 @@ const deactivateOTP = async () => {
     stopPolling()
     showAlert('OTP stopped')
   } catch { showAlert('Failed to stop OTP', 'error') }
+}
+
+// ── Done: deactivate OTP + mark all unmarked students Absent ─
+const doneOTP = async () => {
+  if (!activeOtp.value || !selectedSubject.value) return
+  doneLoading.value = true
+  try {
+    // 1. Deactivate OTP
+    if (activeOtp.value._id) {
+      await otpAPI.deactivate(activeOtp.value._id)
+    }
+    activeOtp.value = null
+    clearInterval(timerInterval)
+    stopPolling()
+
+    // 2. Final sync — get latest attendance records
+    const attRes = await attendanceAPI.getAll({
+      subjectId: selectedSubject.value,
+      date:      selectedDate.value,
+    })
+    syncAttendanceFromRecords(attRes.data.records || [])
+
+    // 3. Mark all still-unmarked students as Absent
+    const unmarkedStudents = students.value.filter(s => !attendance.value[s._id])
+    if (unmarkedStudents.length) {
+      const records = unmarkedStudents.map(s => ({ studentId: s._id, status: 'Absent' }))
+      await attendanceAPI.markBulk({
+        subjectId: selectedSubject.value,
+        date:      selectedDate.value,
+        topicName: topicName.value,
+        timeSlot:  timeSlot.value,
+        records,
+      })
+      // Update local state
+      unmarkedStudents.forEach(s => { attendance.value[s._id] = 'Absent' })
+      showAlert(`Done! ${unmarkedStudents.length} absent student${unmarkedStudents.length !== 1 ? 's' : ''} marked automatically.`, 'success')
+    } else {
+      showAlert('Done! All students were already marked.', 'success')
+    }
+  } catch (e) {
+    showAlert(e.response?.data?.message || 'Failed to complete attendance', 'error')
+  } finally { doneLoading.value = false }
 }
 
 const copyOTP = () => {
