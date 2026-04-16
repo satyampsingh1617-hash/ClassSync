@@ -1,11 +1,7 @@
-/**
- * Geofence utility — RKT College campus gate
- * Center: 19.227926, 73.161258 | Radius: 300 metres
- */
 
 const CAMPUS = {
-  lat:    19.227926,
-  lng:    73.161258,
+  lat:    19.22883,
+  lng:    73.16130,
   radius: 300,          // metres
 };
 
