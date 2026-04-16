@@ -1,5 +1,6 @@
-const OTP        = require("../models/OTP");
-const Attendance = require("../models/Attendance");
+const OTP            = require("../models/OTP");
+const Attendance     = require("../models/Attendance");
+const AttendanceLog  = require("../models/AttendanceLog");
 const { checkGeofence } = require("../utils/geofence");
 
 const getTodayDate = () => new Date().toISOString().split("T")[0];
@@ -43,10 +44,28 @@ exports.generateOTP = async (req, res) => {
  */
 exports.verifyOTP = async (req, res) => {
   try {
-    const { code, subjectId, latitude, longitude, isMockLocation, isProxy } = req.body;
+    const { code, subjectId, latitude, longitude, isMockLocation, isProxy, accuracy } = req.body;
+
+    const today     = getTodayDate();
+    const studentId = req.user.studentRef;
+    const lat       = parseFloat(latitude);
+    const lng       = parseFloat(longitude);
 
     // ── 1. Anti-cheat: mock location / proxy ─────────────────
     if (isMockLocation || isProxy) {
+      await AttendanceLog.create({
+        studentId,
+        subjectId,
+        status:         "Spoof-Attempt",
+        latitude:       isNaN(lat) ? null : lat,
+        longitude:      isNaN(lng) ? null : lng,
+        isMockLocation: !!isMockLocation,
+        isProxy:        !!isProxy,
+        accuracy:       accuracy || null,
+        date:           today,
+        message:        `${isMockLocation ? "Fake GPS" : "VPN/proxy"} detected.`,
+      }).catch(() => {});
+
       return res.status(403).json({
         success: false,
         code:    "SPOOF_DETECTED",
@@ -54,7 +73,12 @@ exports.verifyOTP = async (req, res) => {
       });
     }
 
-    // ── 2. Find active, non-expired OTP ──────────────────────
+    // ── 2. Validate coordinates ───────────────────────────────
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ success: false, message: "Invalid location coordinates." });
+    }
+
+    // ── 3. Find active, non-expired OTP ──────────────────────
     const activeOTP = await OTP.findOne({
       subjectId,
       code,
@@ -63,20 +87,37 @@ exports.verifyOTP = async (req, res) => {
     });
 
     if (!activeOTP) {
+      await AttendanceLog.create({
+        studentId,
+        subjectId,
+        status:    "Invalid-OTP",
+        latitude:  lat,
+        longitude: lng,
+        accuracy:  accuracy || null,
+        date:      today,
+        message:   "Invalid or expired OTP.",
+      }).catch(() => {});
+
       return res.status(400).json({ success: false, message: "Invalid or expired OTP." });
     }
 
-    // ── 3. Geofence check against campus (not teacher location) ─
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({ success: false, message: "Invalid location coordinates." });
-    }
-
+    // ── 4. Geofence check against campus ─────────────────────
     const { inside, distance, campus } = checkGeofence(lat, lng);
 
     if (!inside) {
+      await AttendanceLog.create({
+        studentId,
+        subjectId,
+        otpId:          activeOTP._id,
+        status:         "Out-of-Bounds",
+        latitude:       lat,
+        longitude:      lng,
+        distanceMeters: distance,
+        accuracy:       accuracy || null,
+        date:           today,
+        message:        `${distance}m from campus (limit: ${campus.radius}m).`,
+      }).catch(() => {});
+
       return res.status(403).json({
         success:  false,
         code:     "OUT_OF_BOUNDS",
@@ -86,21 +127,20 @@ exports.verifyOTP = async (req, res) => {
       });
     }
 
-    // ── 4. Prevent duplicate attendance for today ─────────────
-    const today = getTodayDate();
+    // ── 5. Prevent duplicate attendance for today ─────────────
     const alreadyMarked = await Attendance.findOne({
-      studentId: req.user.studentRef,
+      studentId,
       subjectId,
-      date:      today,
+      date: today,
     });
 
     if (alreadyMarked) {
       return res.status(400).json({ success: false, message: "Attendance already marked for today." });
     }
 
-    // ── 5. Mark attendance ────────────────────────────────────
+    // ── 6. Mark attendance ────────────────────────────────────
     await Attendance.create({
-      studentId: req.user.studentRef,
+      studentId,
       subjectId,
       date:      today,
       status:    "Present",
@@ -109,19 +149,63 @@ exports.verifyOTP = async (req, res) => {
       timeSlot:  activeOTP.timeSlot  || "",
     });
 
+    // Log success
+    await AttendanceLog.create({
+      studentId,
+      subjectId,
+      otpId:          activeOTP._id,
+      status:         "Success",
+      latitude:       lat,
+      longitude:      lng,
+      distanceMeters: distance,
+      accuracy:       accuracy || null,
+      date:           today,
+      message:        `Marked present. ${distance}m from campus.`,
+    }).catch(() => {});
+
     // Mark OTP as used by this student
     await OTP.findByIdAndUpdate(activeOTP._id, {
-      $addToSet: { usedBy: req.user.studentRef },
+      $addToSet: { usedBy: studentId },
     });
 
     return res.status(200).json({
       success:  true,
       message:  "Attendance marked successfully!",
-      distance, // metres from campus — shown in success UI
+      distance,
     });
 
   } catch (error) {
     console.error("verifyOTP:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc  Get violations (Out-of-Bounds + Spoof attempts)
+ * GET   /api/otp/violations
+ */
+exports.getViolations = async (req, res) => {
+  try {
+    const { date, status } = req.query;
+    const filter = {
+      status: { $in: ["Out-of-Bounds", "Spoof-Attempt"] },
+    };
+    if (date)   filter.date   = date;
+    if (status) filter.status = status;
+
+    const violations = await AttendanceLog.find(filter)
+      .populate("studentId", "name roll class")
+      .populate("subjectId", "name code")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      success:    true,
+      count:      violations.length,
+      violations,
+    });
+  } catch (error) {
+    console.error("getViolations:", error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };

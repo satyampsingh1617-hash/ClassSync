@@ -155,14 +155,15 @@ const generateOTP = async (subjectId) => {
   try {
     const { data } = await otpAPI.generate({ subjectId, topicName: '', timeSlot: '' })
     if (data.success) {
-      otpMap.value = { ...otpMap.value, [subjectId]: { code: data.otp.code, expiry: data.otp.expiry, usedCount: 0 } }
-      showAlert(`OTP generated: ${data.otp.code} — valid for ${data.otp.expiryMinutes} minutes`)
-      // Auto-clear after expiry
+      // Backend returns: { success, code, expiresAt }
+      otpMap.value = { ...otpMap.value, [subjectId]: { code: data.code, expiry: data.expiresAt, usedCount: 0 } }
+      showAlert(`OTP generated: ${data.code} — valid for 10 minutes`)
+      // Auto-clear after 10 min expiry
       setTimeout(() => {
         const updated = { ...otpMap.value }
         delete updated[subjectId]
         otpMap.value = updated
-      }, data.otp.expiryMinutes * 60 * 1000)
+      }, 10 * 60 * 1000)
     }
   } catch (e) {
     showAlert(e.response?.data?.message || 'Failed to generate OTP', 'error')
@@ -186,8 +187,10 @@ onMounted(async () => {
     )
     const newMap = {}
     otpResults.forEach((result, i) => {
-      if (result.status === 'fulfilled' && result.value.data.otp) {
-        newMap[subjects.value[i]._id] = result.value.data.otp
+      if (result.status === 'fulfilled' && result.value.data.data) {
+        // Backend returns: { success, data: otpDoc }
+        const otp = result.value.data.data
+        newMap[subjects.value[i]._id] = { code: otp.code, expiry: otp.expiry, usedCount: otp.usedBy?.length || 0 }
       }
     })
     otpMap.value = newMap

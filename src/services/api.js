@@ -120,7 +120,7 @@ export const attendanceAPI = {
 // ── OTP ───────────────────────────────────────────────────────
 export const otpAPI = {
   generate:      (data)      => api.post('/otp/generate', data),
-  verify:        (data)      => api.post('/otp/verify', data),   // data includes optional lat/lng/isMockLocation
+  verify:        (data)      => api.post('/otp/verify', data),
   getActive:     (subjectId) => api.get(`/otp/active/${subjectId}`),
   deactivate:    (id)        => api.post(`/otp/deactivate/${id}`),
   getViolations: (params)    => api.get('/otp/violations', { params }),
