@@ -288,6 +288,7 @@ const generatingOtp   = ref(false)
 const submitting      = ref(false)
 const alert           = ref({ msg: '', type: 'success' })
 let timerInterval     = null
+let pollInterval      = null   // polls attendance when OTP is active
 
 const selectedSubjectObj = computed(() =>
   subjects.value.find(s => s._id === selectedSubject.value) || null
@@ -315,20 +316,24 @@ const showAlert = (msg, type = 'success') => {
 }
 
 const onSubjectChange = async () => {
-  if (!selectedSubject.value) { students.value = []; activeOtp.value = null; return }
+  if (!selectedSubject.value) { students.value = []; activeOtp.value = null; stopPolling(); return }
   loadingStudents.value = true
   attendance.value = {}
   activeOtp.value = null
   clearInterval(timerInterval)
+  stopPolling()
   try {
     const sub = subjects.value.find(s => s._id === selectedSubject.value)
     if (sub) {
-      const [studRes, otpRes] = await Promise.all([
+      const [studRes, otpRes, attRes] = await Promise.all([
         studentAPI.getAll({ class: sub.class }),
         otpAPI.getActive(selectedSubject.value),
+        attendanceAPI.getAll({ subjectId: selectedSubject.value, date: selectedDate.value }),
       ])
       students.value = studRes.data.students
+      // Default all to Present, then override with existing records
       students.value.forEach(s => { attendance.value[s._id] = 'Present' })
+      syncAttendanceFromRecords(attRes.data.records || [])
 
       // Restore active OTP if one exists
       // Backend getActive returns: { success, data: otpDoc }
@@ -338,6 +343,7 @@ const onSubjectChange = async () => {
         const expiryMs = new Date(otp.expiry) - Date.now()
         otpTotalTime.value = Math.max(0, Math.floor(expiryMs / 1000))
         startTimer(otp.expiry)
+        startPolling()
       }
     }
   } catch { showAlert('Failed to load students', 'error') }
@@ -359,9 +365,13 @@ const generateOTP = async () => {
     })
     if (data.success) {
       // Backend generate returns: { success, code, expiresAt }
-      activeOtp.value    = { code: data.code, _id: null, topicName: topicName.value, timeSlot: timeSlot.value, usedCount: 0 }
+      // Fetch the real OTP doc to get _id for deactivation
+      const otpRes = await otpAPI.getActive(selectedSubject.value)
+      const otpId  = otpRes.data.data?._id || null
+      activeOtp.value    = { code: data.code, _id: otpId, topicName: topicName.value, timeSlot: timeSlot.value, usedCount: 0 }
       otpTotalTime.value = 600 // 10 min in seconds
       startTimer(data.expiresAt)
+      startPolling()
       showAlert(`OTP generated: ${data.code} — valid for 10 min`)
     }
   } catch (e) {
@@ -372,9 +382,12 @@ const generateOTP = async () => {
 const deactivateOTP = async () => {
   if (!activeOtp.value) return
   try {
-    await otpAPI.deactivate(activeOtp.value._id || activeOtp.value.id)
+    if (activeOtp.value._id) {
+      await otpAPI.deactivate(activeOtp.value._id)
+    }
     activeOtp.value = null
     clearInterval(timerInterval)
+    stopPolling()
     showAlert('OTP stopped')
   } catch { showAlert('Failed to stop OTP', 'error') }
 }
@@ -394,9 +407,50 @@ const startTimer = (expiry) => {
     if (remaining === 0) {
       clearInterval(timerInterval)
       activeOtp.value = null
+      stopPolling()
       showAlert('OTP expired', 'warning')
     }
   }, 1000)
+}
+
+// ── Sync attendance records from backend into local state ─────
+const syncAttendanceFromRecords = (records) => {
+  records.forEach(rec => {
+    // studentId can be a populated object or a plain string ID
+    const sid = rec.studentId?._id?.toString() || rec.studentId?.toString()
+    if (sid) attendance.value[sid] = rec.status
+  })
+}
+
+// ── Poll every 5s while OTP is active to show live updates ───
+const startPolling = () => {
+  stopPolling()
+  pollInterval = setInterval(async () => {
+    if (!activeOtp.value || !selectedSubject.value) { stopPolling(); return }
+    try {
+      // Refresh attendance records for today
+      const { data } = await attendanceAPI.getAll({
+        subjectId: selectedSubject.value,
+        date:      selectedDate.value,
+      })
+      syncAttendanceFromRecords(data.records || [])
+
+      // Update used count from OTP doc
+      const otpRes = await otpAPI.getActive(selectedSubject.value)
+      if (otpRes.data.data) {
+        activeOtp.value = { ...activeOtp.value, usedCount: otpRes.data.data.usedBy?.length || 0 }
+      } else {
+        // OTP expired or deactivated externally
+        activeOtp.value = null
+        stopPolling()
+      }
+    } catch { /* silent — don't spam alerts */ }
+  }, 5000)
+}
+
+const stopPolling = () => {
+  clearInterval(pollInterval)
+  pollInterval = null
 }
 
 const submitBulk = async () => {
@@ -433,5 +487,5 @@ onMounted(async () => {
     subjects.value = data.subjects
   } catch { showAlert('Failed to load subjects', 'error') }
 })
-onUnmounted(() => clearInterval(timerInterval))
+onUnmounted(() => { clearInterval(timerInterval); stopPolling() })
 </script>
