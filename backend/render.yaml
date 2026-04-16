@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: attendpro-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        value: mongodb+srv://admin:admin123@classsync.odarpyu.mongodb.net/attendanceDB?retryWrites=true&w=majority&appName=ClassSync
+      - key: JWT_SECRET
+        value: attendpro_super_secret_jwt_key_2024_classsync
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: OTP_EXPIRY_MINUTES
+        value: 2
