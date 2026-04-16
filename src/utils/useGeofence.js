@@ -5,7 +5,7 @@
 
 const CAMPUS_LAT    = 19.22877599529906
 const CAMPUS_LNG    = 73.16150695815026
-const CAMPUS_RADIUS = 500       // metres — must be within 500m of campus
+const CAMPUS_RADIUS = 200       // metres — must be within 500m of campus
 const GPS_TIMEOUT   = 15000     // Increase timeout for better stability
 
 // Returns distance in METRES between two lat/lng points

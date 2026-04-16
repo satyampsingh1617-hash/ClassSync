@@ -2,7 +2,7 @@
 const CAMPUS = {
   lat:    19.22877599529906,
   lng:    73.16150695815026,
-  radius: 500,          // metres
+  radius: 200,          // metres
 };
 
 /**
