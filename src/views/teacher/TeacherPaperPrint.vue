@@ -514,15 +514,17 @@ const generateSections = () => {
   }
 
   const topicsPerSection = Math.ceil(topics.length / sectionCount)
-  const newSections = []
 
+  // Track all generated questions globally to prevent duplicates
+  const usedQuestions = new Set()
+
+  const newSections = []
   for (let i = 0; i < sectionCount; i++) {
     const sectionTopics = topics.slice(i * topicsPerSection, (i + 1) * topicsPerSection)
-    const questions = []
-    for (let j = 0; j < questionsToShow; j++) {
-      const topic = sectionTopics[j % sectionTopics.length] || topics[j % topics.length]
-      questions.push(questionTemplates[j % questionTemplates.length](topic))
-    }
+    if (!sectionTopics.length) continue
+
+    const questions = generateUniqueQuestions(sectionTopics, questionsToShow, usedQuestions)
+
     newSections.push({
       instruction: questionsToAttempt === questionsToShow
         ? 'Answer the following'
@@ -532,17 +534,68 @@ const generateSections = () => {
     })
   }
   paper.value.sections = newSections
+  showAlert('Questions generated and shuffled ✓')
 }
 
+// ── Generate unique questions for a set of topics ─────────────
+const generateUniqueQuestions = (topics, count, usedSet) => {
+  const questions = []
+  // Shuffle templates so each section gets different question styles
+  const shuffledTemplates = shuffleArray([...questionTemplates])
+  let attempts = 0
+
+  while (questions.length < count && attempts < count * 10) {
+    attempts++
+    const topic    = topics[Math.floor(Math.random() * topics.length)]
+    const template = shuffledTemplates[attempts % shuffledTemplates.length]
+    const q        = template(topic)
+
+    if (!usedSet.has(q)) {
+      usedSet.add(q)
+      questions.push(q)
+    }
+  }
+
+  // Shuffle the final questions so order is random
+  return shuffleArray(questions)
+}
+
+// ── Fisher-Yates shuffle ──────────────────────────────────────
+const shuffleArray = (arr) => {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
+// ── Rich, realistic question templates ───────────────────────
 const questionTemplates = [
   (t) => `Explain the concept of ${t} with a suitable example.`,
-  (t) => `What is ${t}? Describe its types and applications.`,
+  (t) => `What is ${t}? Describe its types and real-world applications.`,
   (t) => `Write a short note on ${t}.`,
-  (t) => `Compare and contrast ${t} with any other related concept.`,
-  (t) => `Describe the working of ${t} with a neat diagram.`,
+  (t) => `Compare and contrast ${t} with any other related concept. Give examples.`,
+  (t) => `Describe the working of ${t} with a neat labeled diagram.`,
   (t) => `List and explain the advantages and disadvantages of ${t}.`,
-  (t) => `Define ${t}. Explain its implementation with an algorithm.`,
-  (t) => `Solve the following problem related to ${t}: [Problem Statement]`,
+  (t) => `Define ${t}. Explain its implementation with a suitable algorithm.`,
+  (t) => `With the help of a diagram, explain the internal structure of ${t}.`,
+  (t) => `State and explain the key properties of ${t}.`,
+  (t) => `Differentiate between ${t} and any two related concepts. Use a table.`,
+  (t) => `Explain the step-by-step process involved in ${t} with an example.`,
+  (t) => `What are the limitations of ${t}? How can they be overcome?`,
+  (t) => `Describe the role of ${t} in modern computing with practical examples.`,
+  (t) => `Explain how ${t} is implemented in practice. Give a code snippet or pseudocode.`,
+  (t) => `What do you understand by ${t}? Explain with the help of a flowchart.`,
+  (t) => `Discuss the time and space complexity of ${t}.`,
+  (t) => `Trace the execution of ${t} on the following input: [provide sample input].`,
+  (t) => `Explain the significance of ${t} in the context of software development.`,
+  (t) => `Describe any two real-life scenarios where ${t} is used effectively.`,
+  (t) => `What are the different types of ${t}? Explain each with an example.`,
+  (t) => `Illustrate the concept of ${t} using a suitable case study.`,
+  (t) => `How does ${t} improve efficiency? Justify with examples.`,
+  (t) => `Write an algorithm for ${t} and analyze its complexity.`,
+  (t) => `Explain the relationship between ${t} and any other concept you have studied.`,
+  (t) => `What are the common errors encountered while working with ${t}? How are they resolved?`,
 ]
 
 const addSection = () => {
