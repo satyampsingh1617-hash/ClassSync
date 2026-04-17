@@ -83,7 +83,10 @@
                     {{ s.name.charAt(0).toUpperCase() }}
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-surface-900">{{ s.name }}</p>
+                    <button @click="openProfile(s._id)"
+                      class="text-sm font-semibold text-surface-900 hover:text-brand-600 hover:underline text-left transition-colors">
+                      {{ s.name }}
+                    </button>
                     <p class="text-xs text-surface-400">{{ s.email || 'No email' }}</p>
                   </div>
                 </div>
@@ -316,6 +319,9 @@
         </div>
       </div>
     </ModalDialog>
+
+    <!-- Profile Modal -->
+    <ProfileModal :show="showProfile" type="student" :itemId="profileId" @close="showProfile = false" />
   </AppLayout>
 </template>
 
@@ -325,6 +331,7 @@ import AppLayout from '../../components/AppLayout.vue'
 import ModalDialog from '../../components/ModalDialog.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
+import ProfileModal from '../../components/ProfileModal.vue'
 import { authAPI, studentAPI, adminAPI } from '../../services/api'
 import { CLASS_LIST, getClassChip, getClassAvatar } from '../../utils/constants'
 
@@ -333,6 +340,8 @@ const loading       = ref(true)
 const saving        = ref(false)
 const showModal     = ref(false)
 const showDelete    = ref(false)
+const showProfile   = ref(false)
+const profileId     = ref(null)
 const editId        = ref(null)
 const deleteTarget  = ref(null)
 const search        = ref('')
@@ -424,6 +433,7 @@ const fetchStudents = async () => {
 }
 
 const openAdd  = () => { editId.value=null; form.value=emptyForm(); showModal.value=true }
+const openProfile = (id) => { profileId.value = id; showProfile.value = true }
 const openEdit = (s) => {
   editId.value = s._id
   form.value = { name:s.name, roll:s.roll, studentClass:s.class, email:s.email||'', phone:s.phone||'', password:'' }

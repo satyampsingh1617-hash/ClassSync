@@ -58,7 +58,12 @@
           <tbody class="divide-y divide-surface-100">
             <tr v-for="(t,i) in teachers" :key="t._id" class="hover:bg-surface-50">
               <td class="table-td text-surface-400">{{ i+1 }}</td>
-              <td class="table-td font-medium text-surface-900">{{ t.name }}</td>
+              <td class="table-td">
+                <button @click="openProfile(t._id)"
+                  class="font-semibold text-surface-900 hover:text-brand-600 hover:underline text-left transition-colors">
+                  {{ t.name }}
+                </button>
+              </td>
               <td class="table-td"><span class="font-mono text-xs bg-surface-100 text-surface-700 px-2 py-0.5 rounded-lg">{{ t.username || '—' }}</span></td>
               <td class="table-td"><span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full border border-purple-200">{{ t.department || '—' }}</span></td>
               <td class="table-td text-surface-500 text-xs">{{ t.email || '—' }}</td>
@@ -167,6 +172,9 @@
         <button @click="doDelete" class="btn-danger" :disabled="saving">{{ saving ? 'Deleting...' : 'Delete' }}</button>
       </div>
     </ModalDialog>
+
+    <!-- Profile Modal -->
+    <ProfileModal :show="showProfile" type="teacher" :itemId="profileId" @close="showProfile = false" />
   </AppLayout>
 </template>
 
@@ -176,6 +184,7 @@ import AppLayout from '../../components/AppLayout.vue'
 import ModalDialog from '../../components/ModalDialog.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
+import ProfileModal from '../../components/ProfileModal.vue'
 import { authAPI, teacherAPI, adminAPI } from '../../services/api'
 import { useAuth } from '../../stores/auth'
 
@@ -190,6 +199,8 @@ const linkTeacherId = ref('')
 const myTeacherLinked = ref(!!user.value?.teacherRef)
 const showModal    = ref(false)
 const showDelete   = ref(false)
+const showProfile  = ref(false)
+const profileId    = ref(null)
 const editId       = ref(null)
 const deleteTarget = ref(null)
 const alert        = ref({ msg:'', type:'success' })
@@ -253,6 +264,7 @@ const fetchTeachers = async () => {
 }
 
 const openAdd  = () => { editId.value=null; form.value=emptyForm(); showModal.value=true }
+const openProfile = (id) => { profileId.value = id; showProfile.value = true }
 const openEdit = (t) => {
   editId.value = t._id
   form.value = {
