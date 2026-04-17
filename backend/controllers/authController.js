@@ -60,6 +60,12 @@ const createUser = async (req, res) => {
     if (!["admin","teacher","student"].includes(role))
       return res.status(400).json({ success: false, message: "Role must be admin, teacher, or student." });
 
+    if (!name || !name.trim())
+      return res.status(400).json({ success: false, message: "Full name is required." });
+
+    if (/\d/.test(name))
+      return res.status(400).json({ success: false, message: "Name cannot contain numbers." });
+
     if (role === "student" && (!roll || !studentClass))
       return res.status(400).json({ success: false, message: "Roll number and class are required for student." });
 

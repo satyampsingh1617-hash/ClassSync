@@ -296,7 +296,9 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="label">Full Name <span class="text-danger">*</span></label>
-            <input v-model="manualForm.name" type="text" class="input" placeholder="e.g. Rahul Sharma" required />
+            <input v-model="manualForm.name" type="text" class="input" placeholder="e.g. Rahul Sharma"
+              pattern="[A-Za-z\s\.\-]+" title="Name can only contain letters, spaces, dots and hyphens"
+              @input="manualForm.name = manualForm.name.replace(/[^A-Za-z\s.\-]/g, '')" required />
           </div>
           <div>
             <label class="label">Roll Number <span class="text-danger">*</span></label>

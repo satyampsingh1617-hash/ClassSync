@@ -9,6 +9,7 @@ const Attendance = require("../models/Attendance");
 const createStudentWithAccount = async ({ name, roll, studentClass, email, phone, password, createdByRole }) => {
   // 0. Guard required fields
   if (!name || !name.trim()) throw { code: "MISSING_FIELD", message: "Student name is required." };
+  if (/\d/.test(name)) throw { code: "INVALID_NAME", message: "Name cannot contain numbers." };
   if (!roll || !roll.trim()) throw { code: "MISSING_FIELD", message: "Roll number is required." };
   if (!studentClass || !studentClass.trim()) throw { code: "MISSING_FIELD", message: "Class is required. Please select a class before uploading." };
 

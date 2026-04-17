@@ -175,7 +175,10 @@ const updateMyProfile = async (req, res) => {
     }
 
     const updateData = {};
-    if (name       !== undefined) updateData.name       = name.trim();
+    if (name       !== undefined) {
+      if (/\d/.test(name)) return res.status(400).json({ success: false, message: "Name cannot contain numbers." });
+      updateData.name = name.trim();
+    }
     if (email      !== undefined) updateData.email      = email.trim();
     if (phone      !== undefined) updateData.phone      = phone.trim();
     if (department !== undefined) updateData.department = department.trim();

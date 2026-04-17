@@ -51,6 +51,9 @@
                 type="text"
                 class="input"
                 placeholder="e.g. Rahul Sharma"
+                pattern="[A-Za-z\s.\-]+"
+                title="Name can only contain letters, spaces, dots and hyphens"
+                @input="form.name = form.name.replace(/[^A-Za-z\s.\-]/g, '')"
                 required
               />
             </div>

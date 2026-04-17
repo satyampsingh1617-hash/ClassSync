@@ -101,8 +101,10 @@
         </div>
 
         <div>
-          <label class="label">Full Name <span class="text-danger">*</span></label>
-          <input v-model="form.name" type="text" class="input" placeholder="e.g. Dr. Priya Sharma" required />
+            <label class="label">Full Name <span class="text-danger">*</span></label>
+            <input v-model="form.name" type="text" class="input" placeholder="e.g. Dr. Priya Sharma"
+              pattern="[A-Za-z\s\.\-]+" title="Name can only contain letters, spaces, dots and hyphens"
+              @input="form.name = form.name.replace(/[^A-Za-z\s.\-]/g, '')" required />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
