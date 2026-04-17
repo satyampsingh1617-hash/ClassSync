@@ -5,7 +5,7 @@ const multer  = require("multer");
 const {
   createStudent, createStudentByTeacher, bulkUploadStudents,
   getAllStudents, getStudentById, updateStudent, deleteStudent,
-  getMyProfile, getMyAttendance,
+  getMyProfile, getMyAttendance, updateMyProfile,
 } = require("../controllers/studentController");
 const { protect, authorize, teacherClassGuard, attachTeacherClasses } = require("../middleware/auth");
 const validate = require("../middleware/validate");
@@ -28,6 +28,10 @@ const studentValidation = [
 // ── Student own routes ────────────────────────────────────────
 router.get("/my/profile",    protect, authorize("student"), getMyProfile);
 router.get("/my/attendance", protect, authorize("student"), getMyAttendance);
+router.put("/my/profile",    protect, authorize("student"), [
+  body("email").optional({ checkFalsy: true }).isEmail().withMessage("Invalid email"),
+  body("phone").optional().isString(),
+], validate, updateMyProfile);
 
 // ── Excel bulk upload (teacher + admin) ──────────────────────
 router.post("/bulk-upload", protect, authorize("teacher", "admin"), (req, res, next) => {

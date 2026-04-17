@@ -409,9 +409,32 @@ const deleteStudent = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// @route   GET /api/students/my/profile
+// @route   PUT /api/students/my/profile
+// @desc    Student updates their own email and phone
 // @access  Private/Student
 // ─────────────────────────────────────────────────────────────
+const updateMyProfile = async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    const studentId = req.user.studentRef;
+    if (!studentId) {
+      return res.status(404).json({ success: false, message: "Student profile not linked." });
+    }
+    const updateData = {};
+    if (email !== undefined) updateData.email = email.trim().toLowerCase();
+    if (phone !== undefined) updateData.phone = phone.trim();
+
+    const student = await Student.findByIdAndUpdate(
+      studentId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    if (!student) return res.status(404).json({ success: false, message: "Student not found." });
+    return res.json({ success: true, message: "Profile updated.", student });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Server error." });
+  }
+};
 const getMyProfile = async (req, res) => {
   try {
     const student = await Student.findById(req.user.studentRef);
@@ -499,4 +522,5 @@ module.exports = {
   deleteStudent,
   getMyProfile,
   getMyAttendance,
+  updateMyProfile,
 };

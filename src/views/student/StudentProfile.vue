@@ -42,8 +42,8 @@
             </div>
           </div>
 
-          <!-- Details grid -->
-          <div class="space-y-4">
+          <!-- Details grid — read view -->
+          <div v-if="!editing" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p class="label">Full Name</p>
@@ -76,6 +76,12 @@
             </div>
 
             <div class="pt-4 flex gap-3">
+              <button @click="startEdit" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Edit Contact
+              </button>
               <router-link to="/change-password" class="btn-secondary">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
@@ -84,6 +90,46 @@
               </router-link>
             </div>
           </div>
+
+          <!-- Edit form — only email + phone editable -->
+          <form v-else @submit.prevent="saveProfile" class="space-y-4">
+            <AlertMessage :message="alert.msg" :type="alert.type" class="mb-2" />
+
+            <!-- Read-only fields -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p class="label">Full Name</p>
+                <p class="text-sm font-semibold text-surface-500">{{ student.name }} <span class="text-xs text-surface-300">(read-only)</span></p>
+              </div>
+              <div>
+                <p class="label">Roll Number</p>
+                <p class="text-sm font-mono text-surface-500">{{ student.roll }} <span class="text-xs text-surface-300">(read-only)</span></p>
+              </div>
+            </div>
+
+            <!-- Editable fields -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="label">Email</label>
+                <input v-model="form.email" type="email" class="input" placeholder="your@email.com" />
+              </div>
+              <div>
+                <label class="label">Phone</label>
+                <input v-model="form.phone" type="tel" class="input" placeholder="+91 XXXXX XXXXX" />
+              </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+              <button type="submit" :disabled="saving" class="btn-primary">
+                <svg v-if="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                {{ saving ? 'Saving...' : 'Save Changes' }}
+              </button>
+              <button type="button" @click="cancelEdit" class="btn-secondary">Cancel</button>
+            </div>
+          </form>
         </div>
 
         <!-- Attendance card -->
@@ -143,14 +189,46 @@
 import { ref, computed, onMounted } from 'vue'
 import AppLayout from '../../components/AppLayout.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
+import AlertMessage from '../../components/AlertMessage.vue'
 import { studentAPI } from '../../services/api'
 import { useAuth } from '../../stores/auth'
 import { getClassChip } from '../../utils/constants'
 
 const { user } = useAuth()
-const loading    = ref(true)
-const student    = ref(null)
+const loading  = ref(true)
+const editing  = ref(false)
+const saving   = ref(false)
+const student  = ref(null)
 const attendance = ref({ total: 0, present: 0, absent: 0, percentage: '0.0' })
+const alert    = ref({ msg: '', type: 'success' })
+const form     = ref({ email: '', phone: '' })
+
+const showAlert = (msg, type = 'success') => {
+  alert.value = { msg, type }
+  setTimeout(() => { alert.value.msg = '' }, 4000)
+}
+
+const startEdit = () => {
+  form.value = { email: student.value.email || '', phone: student.value.phone || '' }
+  editing.value = true
+}
+
+const cancelEdit = () => {
+  editing.value = false
+  alert.value = { msg: '', type: 'success' }
+}
+
+const saveProfile = async () => {
+  saving.value = true
+  try {
+    const { data } = await studentAPI.updateMyProfile(form.value)
+    student.value = data.student
+    editing.value = false
+    showAlert('Contact details updated ✓')
+  } catch (e) {
+    showAlert(e.response?.data?.message || 'Failed to update', 'error')
+  } finally { saving.value = false }
+}
 
 const avatarColor = computed(() => {
   const colors = {

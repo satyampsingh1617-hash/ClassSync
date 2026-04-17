@@ -74,19 +74,20 @@ export const adminAPI = {
 
 // ── Students ──────────────────────────────────────────────────
 export const studentAPI = {
-  create:        (data)     => api.post('/students', data),
-  teacherCreate: (data)     => api.post('/students/teacher-create', data),
-  bulkUpload:    (formData, defaultClass) => api.post(
+  create:          (data)     => api.post('/students', data),
+  teacherCreate:   (data)     => api.post('/students/teacher-create', data),
+  bulkUpload:      (formData, defaultClass) => api.post(
     `/students/bulk-upload${defaultClass ? `?defaultClass=${encodeURIComponent(defaultClass)}` : ''}`,
     formData,
     { headers: { 'Content-Type': 'multipart/form-data' } }
   ),
-  getAll:        (params)   => api.get('/students', { params }),
-  getById:       (id)       => api.get(`/students/${id}`),
-  update:        (id, data) => api.put(`/students/${id}`, data),
-  delete:        (id)       => api.delete(`/students/${id}`),
-  myProfile:     ()         => api.get('/students/my/profile'),
-  myAttendance:  ()         => api.get('/students/my/attendance'),
+  getAll:          (params)   => api.get('/students', { params }),
+  getById:         (id)       => api.get(`/students/${id}`),
+  update:          (id, data) => api.put(`/students/${id}`, data),
+  delete:          (id)       => api.delete(`/students/${id}`),
+  myProfile:       ()         => api.get('/students/my/profile'),
+  myAttendance:    ()         => api.get('/students/my/attendance'),
+  updateMyProfile: (data)     => api.put('/students/my/profile', data),
 }
 
 // ── Teachers ──────────────────────────────────────────────────
