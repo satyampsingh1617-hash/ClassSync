@@ -279,23 +279,32 @@
     </ModalDialog>
 
     <!-- Manual Add Modal -->
-    <ModalDialog :show="showManual" title="Add Student Manually" @close="showManual=false">
+    <ModalDialog :show="showManual" title="Add Student Manually" @close="closeManual">
       <form @submit.prevent="saveManual" class="space-y-4">
+
+        <!-- Inline error -->
+        <div v-if="manualError" class="flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200/60">
+          <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          {{ manualError }}
+        </div>
+
         <div class="p-3 bg-blue-50 rounded-lg border border-blue-100 text-xs text-blue-700">
           💡 Username = Roll Number &nbsp;|&nbsp; Password = Roll Number (auto-set)
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="label">Full Name</label>
-            <input v-model="manualForm.name" type="text" class="input" required />
+            <label class="label">Full Name <span class="text-danger">*</span></label>
+            <input v-model="manualForm.name" type="text" class="input" placeholder="e.g. Rahul Sharma" required />
           </div>
           <div>
-            <label class="label">Roll Number</label>
-            <input v-model="manualForm.roll" type="text" class="input" required />
+            <label class="label">Roll Number <span class="text-danger">*</span></label>
+            <input v-model="manualForm.roll" type="text" class="input" placeholder="e.g. CS2024001" required />
           </div>
         </div>
         <div>
-          <label class="label">Class</label>
+          <label class="label">Class <span class="text-danger">*</span></label>
           <select v-model="manualForm.studentClass" class="input" required>
             <option value="">— Select your class —</option>
             <option v-for="cls in assignedClasses" :key="cls" :value="cls">{{ cls }}</option>
@@ -303,16 +312,16 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="label">Email <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input v-model="manualForm.email" type="email" class="input" />
+            <label class="label">Email <span class="text-surface-400 font-normal">(optional)</span></label>
+            <input v-model="manualForm.email" type="email" class="input" placeholder="student@college.edu" />
           </div>
           <div>
-            <label class="label">Phone <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input v-model="manualForm.phone" type="text" class="input" />
+            <label class="label">Phone <span class="text-surface-400 font-normal">(optional)</span></label>
+            <input v-model="manualForm.phone" type="tel" class="input" placeholder="e.g. 9876543210" />
           </div>
         </div>
         <div class="flex justify-end gap-3 pt-2">
-          <button type="button" @click="showManual=false" class="btn-secondary">Cancel</button>
+          <button type="button" @click="closeManual" class="btn-secondary">Cancel</button>
           <button type="submit" class="btn-primary" :disabled="savingManual">
             {{ savingManual ? 'Adding...' : 'Add Student' }}
           </button>
@@ -378,6 +387,7 @@ const fileInput    = ref(null)
 // Manual
 const showManual   = ref(false)
 const savingManual = ref(false)
+const manualError  = ref('')
 const manualForm   = ref({ name:'', roll:'', studentClass:'', email:'', phone:'' })
 
 // Reset pwd
@@ -496,16 +506,23 @@ const downloadTemplate = () => {
 const openManual = () => {
   manualForm.value = { name:'', roll:'', studentClass: assignedClasses.value[0] || '', email:'', phone:'' }
   showManual.value = true
+  manualError.value = ''
 }
 
+const closeManual = () => { showManual.value=false; manualError.value='' }
+
 const saveManual = async () => {
+  manualError.value = ''
+  if (!manualForm.value.name.trim()) { manualError.value = 'Full name is required.'; return }
+  if (!manualForm.value.roll.trim()) { manualError.value = 'Roll number is required.'; return }
+  if (!manualForm.value.studentClass) { manualError.value = 'Please select a class.'; return }
   savingManual.value = true
   try {
     const { data } = await studentAPI.teacherCreate(manualForm.value)
     showAlert(data.message || 'Student added')
-    showManual.value=false; fetchStudents()
+    closeManual(); fetchStudents()
   } catch (e) {
-    showAlert(e.response?.data?.message || 'Failed to add student', 'error')
+    manualError.value = e.response?.data?.message || 'Failed to add student. Please try again.'
   } finally { savingManual.value=false }
 }
 

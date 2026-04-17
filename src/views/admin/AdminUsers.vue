@@ -70,14 +70,23 @@
     </div>
 
     <!-- Create User Modal -->
-    <ModalDialog :show="showCreate" title="Create User Account" @close="showCreate=false">
+    <ModalDialog :show="showCreate" title="Create User Account" @close="closeCreate">
       <form @submit.prevent="createUser" class="space-y-4">
+
+        <!-- Inline error -->
+        <div v-if="createError" class="flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200/60">
+          <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          {{ createError }}
+        </div>
+
         <!-- Role selector -->
         <div>
-          <label class="label">Role</label>
+          <label class="label">Role <span class="text-danger">*</span></label>
           <div class="grid grid-cols-3 gap-2">
             <button v-for="r in ['admin','teacher','student']" :key="r" type="button"
-              @click="createForm.role=r"
+              @click="createForm.role=r; createError=''"
               :class="['py-2 rounded-lg border-2 text-sm font-medium transition-all',
                 createForm.role===r ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-surface-200 text-surface-600 hover:border-surface-300']">
               {{ r==='admin'?'🔑':r==='teacher'?'👨‍🏫':'🎓' }} {{ r.charAt(0).toUpperCase()+r.slice(1) }}
@@ -86,26 +95,26 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="label">Full Name</label>
-            <input v-model="createForm.name" type="text" class="input" required />
+            <label class="label">Full Name <span class="text-danger">*</span></label>
+            <input v-model="createForm.name" type="text" class="input" placeholder="e.g. Rahul Sharma" required />
           </div>
           <div>
-            <label class="label">Username</label>
-            <input v-model="createForm.username" type="text" class="input" required />
+            <label class="label">Username <span class="text-danger">*</span></label>
+            <input v-model="createForm.username" type="text" class="input" placeholder="e.g. rahul.sharma" autocomplete="off" required />
           </div>
         </div>
         <div>
-          <label class="label">Password</label>
-          <input v-model="createForm.password" type="password" class="input" required />
+          <label class="label">Password <span class="text-danger">*</span></label>
+          <input v-model="createForm.password" type="password" class="input" placeholder="Min 4 characters" autocomplete="new-password" required />
         </div>
         <template v-if="createForm.role==='student'">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="label">Roll Number</label>
-              <input v-model="createForm.roll" type="text" class="input" required />
+              <label class="label">Roll Number <span class="text-danger">*</span></label>
+              <input v-model="createForm.roll" type="text" class="input" placeholder="e.g. CS2024001" required />
             </div>
             <div>
-              <label class="label">Class</label>
+              <label class="label">Class <span class="text-danger">*</span></label>
               <select v-model="createForm.studentClass" class="input" required>
                 <option value="">— Select Class —</option>
                 <option v-for="cls in CLASS_LIST" :key="cls" :value="cls">{{ cls }}</option>
@@ -117,7 +126,7 @@
           <div>
             <label class="label">Department</label>
             <select v-model="createForm.department" class="input">
-              <option value="">Select Department</option>
+              <option value="">— Select Department —</option>
               <option value="CS">CS (Computer Science)</option>
               <option value="IT">IT (Information Technology)</option>
             </select>
@@ -125,10 +134,10 @@
         </template>
         <div>
           <label class="label">Email <span class="text-surface-400 font-normal">(optional)</span></label>
-          <input v-model="createForm.email" type="email" class="input" />
+          <input v-model="createForm.email" type="email" class="input" placeholder="user@college.edu" />
         </div>
         <div class="flex justify-end gap-3 pt-2">
-          <button type="button" @click="showCreate=false" class="btn-secondary">Cancel</button>
+          <button type="button" @click="closeCreate" class="btn-secondary">Cancel</button>
           <button type="submit" class="btn-primary" :disabled="creating">
             {{ creating ? 'Creating...' : 'Create Account' }}
           </button>
@@ -180,6 +189,7 @@ const alert       = ref({ msg:'', type:'success' })
 
 const showCreate  = ref(false)
 const creating    = ref(false)
+const createError = ref('')
 const createForm  = ref({ role:'student', name:'', username:'', password:'', roll:'', studentClass:'', department:'', email:'' })
 
 const showReset   = ref(false)
@@ -211,17 +221,25 @@ const fetchUsers = async () => {
 
 const openCreate = () => {
   createForm.value = { role:'student', name:'', username:'', password:'', roll:'', studentClass:'', department:'', email:'' }
+  createError.value = ''
   showCreate.value = true
 }
+const closeCreate = () => { showCreate.value=false; createError.value='' }
 
 const createUser = async () => {
+  createError.value = ''
+  if (!createForm.value.name.trim()) { createError.value = 'Full name is required.'; return }
+  if (!createForm.value.username.trim()) { createError.value = 'Username is required.'; return }
+  if (createForm.value.password.length < 4) { createError.value = 'Password must be at least 4 characters.'; return }
+  if (createForm.value.role === 'student' && !createForm.value.roll.trim()) { createError.value = 'Roll number is required for students.'; return }
+  if (createForm.value.role === 'student' && !createForm.value.studentClass) { createError.value = 'Class is required for students.'; return }
   creating.value = true
   try {
     await authAPI.createUser(createForm.value)
     showAlert('User created successfully')
-    showCreate.value=false; fetchUsers()
+    closeCreate(); fetchUsers()
   } catch (e) {
-    showAlert(e.response?.data?.message || 'Failed to create user','error')
+    createError.value = e.response?.data?.message || 'Failed to create user. Please try again.'
   } finally { creating.value=false }
 }
 

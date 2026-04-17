@@ -91,27 +91,36 @@
     <!-- Add/Edit Modal -->
     <ModalDialog :show="showModal" :title="editId ? 'Edit Teacher' : 'Add Teacher'" @close="closeModal">
       <form @submit.prevent="save" class="space-y-4">
+
+        <!-- Inline error -->
+        <div v-if="formError" class="flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200/60">
+          <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          {{ formError }}
+        </div>
+
         <div>
-          <label class="label">Full Name</label>
-          <input v-model="form.name" type="text" class="input" required />
+          <label class="label">Full Name <span class="text-danger">*</span></label>
+          <input v-model="form.name" type="text" class="input" placeholder="e.g. Dr. Priya Sharma" required />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="label">Department</label>
             <select v-model="form.department" class="input">
-              <option value="">Select Department</option>
+              <option value="">— Select Department —</option>
               <option value="CS">CS (Computer Science)</option>
               <option value="IT">IT (Information Technology)</option>
             </select>
           </div>
           <div>
             <label class="label">Phone</label>
-            <input v-model="form.phone" type="text" class="input" />
+            <input v-model="form.phone" type="tel" class="input" placeholder="e.g. 9876543210" />
           </div>
         </div>
         <div>
           <label class="label">Email</label>
-          <input v-model="form.email" type="email" class="input" />
+          <input v-model="form.email" type="email" class="input" placeholder="teacher@college.edu" />
         </div>
         <!-- Class Teacher Designation -->
         <div class="border border-brand-100 bg-brand-50 rounded-xl p-4 space-y-3">
@@ -135,7 +144,7 @@
           <div v-if="form.isClassTeacher">
             <label class="label">Assigned Class <span class="text-danger">*</span></label>
             <select v-model="form.assignedClass" class="input" :required="form.isClassTeacher">
-              <option value="">Select a class...</option>
+              <option value="">— Select a class —</option>
               <option v-for="cls in classes" :key="cls" :value="cls">{{ cls }}</option>
             </select>
           </div>
@@ -145,12 +154,12 @@
             <p class="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-3">Login Credentials</p>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="label">Username</label>
-                <input v-model="form.username" type="text" class="input" required />
+                <label class="label">Username <span class="text-danger">*</span></label>
+                <input v-model="form.username" type="text" class="input" placeholder="e.g. priya.sharma" autocomplete="off" required />
               </div>
               <div>
-                <label class="label">Password</label>
-                <input v-model="form.password" type="password" class="input" required />
+                <label class="label">Password <span class="text-danger">*</span></label>
+                <input v-model="form.password" type="password" class="input" placeholder="Min 4 characters" autocomplete="new-password" required />
               </div>
             </div>
           </div>
@@ -204,6 +213,7 @@ const profileId    = ref(null)
 const editId       = ref(null)
 const deleteTarget = ref(null)
 const alert        = ref({ msg:'', type:'success' })
+const formError    = ref('')
 
 const emptyForm = () => ({
   name:'', department:'', email:'', phone:'', username:'', password:'',
@@ -263,7 +273,7 @@ const fetchTeachers = async () => {
   finally { loading.value = false }
 }
 
-const openAdd  = () => { editId.value=null; form.value=emptyForm(); showModal.value=true }
+const openAdd  = () => { editId.value=null; form.value=emptyForm(); formError.value=''; showModal.value=true }
 const openProfile = (id) => { profileId.value = id; showProfile.value = true }
 const openEdit = (t) => {
   editId.value = t._id
@@ -272,15 +282,17 @@ const openEdit = (t) => {
     phone: t.phone||'', username:'', password:'',
     isClassTeacher: t.isClassTeacher||false, assignedClass: t.assignedClass||''
   }
+  formError.value = ''
   showModal.value = true
 }
-const closeModal = () => { showModal.value=false; editId.value=null }
+const closeModal = () => { showModal.value=false; editId.value=null; formError.value='' }
 
 const save = async () => {
-  if (form.value.isClassTeacher && !form.value.assignedClass) {
-    showAlert('Please select an assigned class for the class teacher.', 'error')
-    return
-  }
+  formError.value = ''
+  if (!form.value.name.trim()) { formError.value = 'Full name is required.'; return }
+  if (!editId.value && !form.value.username.trim()) { formError.value = 'Username is required.'; return }
+  if (!editId.value && form.value.password.length < 4) { formError.value = 'Password must be at least 4 characters.'; return }
+  if (form.value.isClassTeacher && !form.value.assignedClass) { formError.value = 'Please select an assigned class for the class teacher.'; return }
   saving.value = true
   try {
     if (editId.value) {
@@ -309,7 +321,7 @@ const save = async () => {
     }
     closeModal(); fetchTeachers()
   } catch (e) {
-    showAlert(e.response?.data?.message || 'Operation failed','error')
+    formError.value = e.response?.data?.message || 'Operation failed. Please try again.'
   } finally { saving.value=false }
 }
 

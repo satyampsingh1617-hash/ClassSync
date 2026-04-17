@@ -181,18 +181,27 @@
     <!-- Add/Edit Modal -->
     <ModalDialog :show="showModal" :title="editId ? 'Edit Student' : 'Add Student'" @close="closeModal">
       <form @submit.prevent="save" class="space-y-4">
+
+        <!-- Inline error -->
+        <div v-if="formError" class="flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200/60">
+          <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          {{ formError }}
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="label">Full Name</label>
-            <input v-model="form.name" type="text" class="input" required />
+            <label class="label">Full Name <span class="text-danger">*</span></label>
+            <input v-model="form.name" type="text" class="input" placeholder="e.g. Rahul Sharma" required />
           </div>
           <div>
-            <label class="label">Roll Number</label>
-            <input v-model="form.roll" type="text" class="input" required :disabled="!!editId" />
+            <label class="label">Roll Number <span class="text-danger">*</span></label>
+            <input v-model="form.roll" type="text" class="input" placeholder="e.g. CS2024001" required :disabled="!!editId" />
           </div>
         </div>
         <div>
-          <label class="label">Class</label>
+          <label class="label">Class <span class="text-danger">*</span></label>
           <select v-model="form.studentClass" class="input" required>
             <option value="">— Select Class —</option>
             <option v-for="cls in CLASS_LIST" :key="cls" :value="cls">{{ cls }}</option>
@@ -201,20 +210,20 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="label">Email <span class="text-surface-400 font-normal normal-case">(optional)</span></label>
-            <input v-model="form.email" type="email" class="input" />
+            <input v-model="form.email" type="email" class="input" placeholder="student@college.edu" />
           </div>
           <div>
             <label class="label">Phone <span class="text-surface-400 font-normal normal-case">(optional)</span></label>
-            <input v-model="form.phone" type="text" class="input" />
+            <input v-model="form.phone" type="tel" class="input" placeholder="e.g. 9876543210" />
           </div>
         </div>
         <template v-if="!editId">
           <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 text-xs text-brand-700">
-            💡 Username = Roll Number &nbsp;|&nbsp; Password = Roll Number (auto-set)
+            💡 Username = Roll Number &nbsp;|&nbsp; Default password = Roll Number
           </div>
           <div>
             <label class="label">Custom Password <span class="text-surface-400 font-normal normal-case">(optional)</span></label>
-            <input v-model="form.password" type="password" class="input" placeholder="Leave blank = roll number" />
+            <input v-model="form.password" type="password" class="input" placeholder="Leave blank to use roll number as password" autocomplete="new-password" />
           </div>
         </template>
         <div class="flex justify-end gap-3 pt-2">
@@ -349,6 +358,7 @@ const selectedClass = ref('')
 const currentPage   = ref(1)
 const pageSize      = 15
 const alert         = ref({ msg:'', type:'success' })
+const formError     = ref('')
 
 // ── Reset state ───────────────────────────────────────────────
 const showResetModal    = ref(false)
@@ -432,16 +442,21 @@ const fetchStudents = async () => {
   finally { loading.value = false }
 }
 
-const openAdd  = () => { editId.value=null; form.value=emptyForm(); showModal.value=true }
+const openAdd  = () => { editId.value=null; form.value=emptyForm(); formError.value=''; showModal.value=true }
 const openProfile = (id) => { profileId.value = id; showProfile.value = true }
 const openEdit = (s) => {
   editId.value = s._id
   form.value = { name:s.name, roll:s.roll, studentClass:s.class, email:s.email||'', phone:s.phone||'', password:'' }
+  formError.value = ''
   showModal.value = true
 }
-const closeModal = () => { showModal.value=false; editId.value=null }
+const closeModal = () => { showModal.value=false; editId.value=null; formError.value='' }
 
 const save = async () => {
+  formError.value = ''
+  if (!form.value.name.trim()) { formError.value = 'Full name is required.'; return }
+  if (!editId.value && !form.value.roll.trim()) { formError.value = 'Roll number is required.'; return }
+  if (!form.value.studentClass) { formError.value = 'Please select a class.'; return }
   saving.value = true
   try {
     if (editId.value) {
@@ -459,11 +474,11 @@ const save = async () => {
         studentClass:form.value.studentClass,
         email:form.value.email, phone:form.value.phone,
       })
-      showAlert('Student added. Login: username & password = roll number')
+      showAlert('Student added — login: username & password = roll number')
     }
     closeModal(); fetchStudents()
   } catch (e) {
-    showAlert(e.response?.data?.message || 'Operation failed','error')
+    formError.value = e.response?.data?.message || 'Operation failed. Please try again.'
   } finally { saving.value=false }
 }
 

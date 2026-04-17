@@ -3,9 +3,9 @@
  * Campus: RKT College gate (Updated) | Coordinates: 19.227926, 73.161258 | Radius: 300m
  */
 
-const CAMPUS_LAT    = 19.22877599529906
-const CAMPUS_LNG    = 73.16150695815026
-const CAMPUS_RADIUS = 200       // metres — must be within 500m of campus
+const CAMPUS_LAT    = 19.227926
+const CAMPUS_LNG    = 73.161258
+const CAMPUS_RADIUS = 300       // metres — must be within 300m of campus gate
 const GPS_TIMEOUT   = 15000     // Increase timeout for better stability
 
 // Returns distance in METRES between two lat/lng points
@@ -35,9 +35,10 @@ const isNativeApp = () =>
 async function requestLocationNative() {
   const { Geolocation } = await import('@capacitor/geolocation')
 
-  // Always check current status first
+  // 1. Explicitly check permissions
   let permStatus = await Geolocation.checkPermissions()
 
+  // 2. If denied, throw error with instructions
   if (permStatus.location === 'denied') {
     throw new GeofenceError(
       'PERMISSION_DENIED',
@@ -45,14 +46,16 @@ async function requestLocationNative() {
     )
   }
 
+  // 3. If not granted (could be 'prompt' or 'prompt-with-rationale'), request it
   if (permStatus.location !== 'granted') {
     permStatus = await Geolocation.requestPermissions({ permissions: ['location'] })
   }
 
+  // 4. Check again after request
   if (permStatus.location !== 'granted') {
     throw new GeofenceError(
       'PERMISSION_DENIED',
-      'Location permission denied. Please allow location access in your phone settings.'
+      'Location permission is required to verify your presence on campus.'
     )
   }
 
