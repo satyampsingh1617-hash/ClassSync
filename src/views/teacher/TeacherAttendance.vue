@@ -33,7 +33,7 @@
         </div>
         <div>
           <label class="label">Date</label>
-          <input v-model="selectedDate" type="date" class="input" />
+          <input v-model="selectedDate" type="date" class="input" :max="today" @change="onDateChange" />
         </div>
       </div>
 
@@ -197,6 +197,11 @@
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
+          <button @click="refreshAttendance" class="btn-secondary text-xs py-1.5 px-3" title="Refresh attendance">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+          </button>
           <button @click="markAll('Present')" class="btn-success text-xs py-1.5 px-3">✓ All Present</button>
           <button @click="markAll('Absent')"  class="btn-danger  text-xs py-1.5 px-3">✗ All Absent</button>
           <button @click="submitBulk" :disabled="submitting || !students.length" class="btn-primary text-xs py-1.5 px-3">
@@ -309,6 +314,7 @@ const subjects        = ref([])
 const students        = ref([])
 const selectedSubject = ref('')
 const selectedDate    = ref(new Date().toISOString().split('T')[0])
+const today           = new Date().toISOString().split('T')[0]  // max date = today
 const topicName       = ref('')
 const timeSlot        = ref('')
 const otpExpiryMins   = ref(10)  // teacher-chosen expiry in minutes
@@ -325,6 +331,7 @@ const doneLoading     = ref(false)
 const alert           = ref({ msg: '', type: 'success' })
 let timerInterval     = null
 let pollInterval      = null   // polls attendance when OTP is active
+let refreshInterval   = null   // auto-refreshes attendance list every 5s
 
 const selectedSubjectObj = computed(() =>
   subjects.value.find(s => s._id === selectedSubject.value) || null
@@ -352,7 +359,7 @@ const showAlert = (msg, type = 'success') => {
 }
 
 const onSubjectChange = async () => {
-  if (!selectedSubject.value) { students.value = []; activeOtp.value = null; stopPolling(); return }
+  if (!selectedSubject.value) { students.value = []; activeOtp.value = null; stopPolling(); stopAutoRefresh(); return }
   loadingStudents.value = true
   attendance.value = {}
   otpMarked.value  = new Set()
@@ -384,7 +391,7 @@ const onSubjectChange = async () => {
       }
     }
   } catch { showAlert('Failed to load students', 'error') }
-  finally { loadingStudents.value = false }
+  finally { loadingStudents.value = false; startAutoRefresh() }
 }
 
 const markAll = (status) => {
@@ -543,6 +550,37 @@ const stopPolling = () => {
   pollInterval = null
 }
 
+// ── Refresh attendance for current subject+date ───────────────
+const refreshAttendance = async () => {
+  if (!selectedSubject.value) return
+  try {
+    const { data } = await attendanceAPI.getAll({
+      subjectId: selectedSubject.value,
+      date:      selectedDate.value,
+    })
+    syncAttendanceFromRecords(data.records || [])
+  } catch { /* silent */ }
+}
+
+// ── When date changes, reload attendance records ──────────────
+const onDateChange = async () => {
+  if (!selectedSubject.value) return
+  // Reset marks and reload for the new date
+  students.value.forEach(s => { attendance.value[s._id] = '' })
+  otpMarked.value = new Set()
+  await refreshAttendance()
+}
+
+// ── Auto-refresh every 5s (always, not just during OTP) ──────
+const startAutoRefresh = () => {
+  clearInterval(refreshInterval)
+  refreshInterval = setInterval(refreshAttendance, 5000)
+}
+const stopAutoRefresh = () => {
+  clearInterval(refreshInterval)
+  refreshInterval = null
+}
+
 const submitBulk = async () => {
   if (!selectedSubject.value || !students.value.length) return
   const unmarked = students.value.filter(s => !attendance.value[s._id])
@@ -577,5 +615,5 @@ onMounted(async () => {
     subjects.value = data.subjects
   } catch { showAlert('Failed to load subjects', 'error') }
 })
-onUnmounted(() => { clearInterval(timerInterval); stopPolling() })
+onUnmounted(() => { clearInterval(timerInterval); stopPolling(); stopAutoRefresh() })
 </script>
