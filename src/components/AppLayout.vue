@@ -26,16 +26,21 @@
         </button>
       </div>
 
-      <!-- User pill -->
-      <div v-if="!sidebarCollapsed" class="mx-3 mt-3 mb-1 p-3 rounded-xl bg-surface-50 border border-surface-100">
+      <!-- User pill — click to open profile -->
+      <div v-if="!sidebarCollapsed"
+        class="mx-3 mt-3 mb-1 p-3 rounded-xl bg-surface-50 border border-surface-100 cursor-pointer hover:bg-brand-50 hover:border-brand-200 transition-all duration-150 group"
+        @click="goToProfile">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 bg-gradient-to-br from-brand-500 to-brand-700">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 bg-gradient-to-br from-brand-500 to-brand-700 group-hover:shadow-brand transition-all">
             {{ userInitial }}
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-surface-800 truncate leading-tight">{{ user?.name }}</p>
+            <p class="text-sm font-semibold text-surface-800 truncate leading-tight group-hover:text-brand-700 transition-colors">{{ user?.name }}</p>
             <span class="text-xs font-semibold px-1.5 py-0.5 rounded-md" :class="roleChipClass">{{ user?.role }}</span>
           </div>
+          <svg class="w-3.5 h-3.5 text-surface-300 group-hover:text-brand-400 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
         </div>
       </div>
 
@@ -132,11 +137,12 @@
           </button>
         </div>
 
-        <div class="mx-3 mt-3 mb-1 p-3 rounded-xl bg-surface-50 border border-surface-100">
+        <div class="mx-3 mt-3 mb-1 p-3 rounded-xl bg-surface-50 border border-surface-100 cursor-pointer hover:bg-brand-50 hover:border-brand-200 transition-all group"
+          @click="goToProfile(); mobileMenuOpen = false">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-brand-500 to-brand-700">{{ userInitial }}</div>
             <div>
-              <p class="text-sm font-semibold text-surface-800">{{ user?.name }}</p>
+              <p class="text-sm font-semibold text-surface-800 group-hover:text-brand-700 transition-colors">{{ user?.name }}</p>
               <span class="text-xs font-semibold px-1.5 py-0.5 rounded-md" :class="roleChipClass">{{ user?.role }}</span>
             </div>
           </div>
@@ -341,6 +347,13 @@ const roleChipClass = computed(() => ({
 const isActive = (path) => route.path === path
 const handleLogout = () => { logout(); router.push('/login') }
 
+// Navigate to profile page based on role
+const goToProfile = () => {
+  if (isTeacher.value) router.push('/teacher/profile')
+  else if (isStudent.value) router.push('/student/profile')
+  // admin has no dedicated profile page — do nothing or go to dashboard
+}
+
 const pageTitles = {
   '/admin':                   'Admin Dashboard',
   '/admin/users':             'All Users',
@@ -431,7 +444,6 @@ const allTeacherLinks = computed(() => {
   }
   base.push({ to: '/teacher/defaulters', label: 'Defaulters',  icon: icons.defaulter })
   base.push({ to: '/teacher/violations', label: 'Violations',  icon: icons.violation })
-  base.push({ to: '/teacher/profile',    label: 'My Profile',  icon: icons.profile   })
   return base
 })
 const allStudentLinks = [
