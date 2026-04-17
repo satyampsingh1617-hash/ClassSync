@@ -93,8 +93,12 @@ router.beforeEach((to, from, next) => {
     return next(dash[user?.role] || '/login')
   }
   if (to.meta.role && user?.role !== to.meta.role) {
-    const dash = { admin: '/admin', teacher: '/teacher', student: '/student' }
-    return next(dash[user?.role] || '/login')
+    // Admin with teacherRef can access teacher routes
+    const isAdminTeacher = user?.role === 'admin' && user?.teacherRef && to.meta.role === 'teacher'
+    if (!isAdminTeacher) {
+      const dash = { admin: '/admin', teacher: '/teacher', student: '/student' }
+      return next(dash[user?.role] || '/login')
+    }
   }
   if (token && user?.mustChangePassword && to.path !== '/change-password') {
     return next('/change-password')

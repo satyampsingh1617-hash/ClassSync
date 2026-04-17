@@ -351,7 +351,7 @@ const handleLogout = () => { logout(); router.push('/login') }
 const goToProfile = () => {
   if (isTeacher.value) router.push('/teacher/profile')
   else if (isStudent.value) router.push('/student/profile')
-  // admin has no dedicated profile page — do nothing or go to dashboard
+  else if (isAdmin.value) router.push('/admin')
 }
 
 const pageTitles = {
