@@ -14,7 +14,7 @@
           CA
         </div>
         <div v-if="!sidebarCollapsed" class="flex-1 min-w-0">
-          <p class="font-black text-surface-900 text-sm leading-tight">AttendPro</p>
+          <p class="font-black text-surface-900 text-sm leading-tight">ClassSync</p>
           <p class="text-xs text-surface-400 leading-tight">Management System</p>
         </div>
         <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -123,7 +123,7 @@
         <div class="flex items-center justify-between px-4 py-4 border-b border-surface-100">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs text-white bg-gradient-to-br from-brand-500 to-brand-700">CA</div>
-            <p class="font-black text-surface-900 text-sm">AttendPro</p>
+            <p class="font-black text-surface-900 text-sm">ClassSync</p>
           </div>
           <button @click="mobileMenuOpen = false" class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 hover:bg-surface-100">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

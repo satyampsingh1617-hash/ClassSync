@@ -18,7 +18,7 @@
       <div class="relative z-10 text-center text-white max-w-sm">
         <!-- Logo -->
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 mb-8 shadow-lg">
-          <span class="text-3xl font-black text-white">CS</span>
+          <span class="text-3xl font-black text-white">&nbsp;IT/CS</span>
         </div>
 
         <h1 class="text-4xl font-black tracking-tight mb-3">ClasSync</h1>

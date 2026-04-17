@@ -444,7 +444,7 @@ const generateDefaulterPDF = async () => {
       <tbody>${rows}</tbody>
     </table>
     <div class="footer">
-      <span>AttendPro — RKT College Management System</span>
+      <span>ClassSync — RKT College Management System</span>
       <span>Confidential — For Internal Use Only</span>
     </div>
     </body></html>`
