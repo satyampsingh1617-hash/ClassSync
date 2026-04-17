@@ -161,7 +161,9 @@
                 :placeholder="`e.g. Attempt any 2 out of 4`" />
               <input v-model.number="section.marksEach" type="number" min="1"
                 class="input w-20 text-sm text-center" placeholder="Marks" title="Marks per question" />
-              <span class="text-xs text-surface-500 whitespace-nowrap">× {{ section.questions.filter(q=>q.trim()).length }} = {{ sectionTotal(section) }}</span>
+              <span class="text-xs text-surface-500 whitespace-nowrap">
+                × {{ (() => { const m = section.instruction?.match(/attempt\s+any\s+(\d+)/i); const q = section.questions.filter(q=>q.trim()).length; return m ? Math.min(parseInt(m[1]),q) : q })() }} = {{ sectionTotal(section) }}
+              </span>
               <button @click="paper.sections.splice(si,1)"
                 class="p-1 rounded-lg text-surface-400 hover:text-danger hover:bg-danger-light transition-all flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,8 +422,11 @@ const allocatedMarks = computed(() =>
   paper.value.sections.reduce((sum, s) => sum + sectionTotal(s), 0)
 )
 const sectionTotal = (section) => {
-  const count = section.questions.filter(q => q.trim()).length
-  return (section.marksEach || 0) * count
+  const questionCount = section.questions.filter(q => q.trim()).length
+  // Parse instruction like "Attempt any 2 out of 4" to get the attempt count
+  const match = section.instruction?.match(/attempt\s+any\s+(\d+)/i)
+  const attemptCount = match ? parseInt(match[1]) : questionCount
+  return (section.marksEach || 0) * Math.min(attemptCount, questionCount)
 }
 
 // ── Save paper ────────────────────────────────────────────────
