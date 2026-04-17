@@ -360,6 +360,7 @@ const pageTitles = {
   '/teacher/queries':         'Student Queries',
   '/teacher/class-overview':  'Class Overview',
   '/teacher/violations':      'Violation Dashboard',
+  '/teacher/profile':         'My Profile',
   '/teacher/defaulters':      'Defaulter List',
   '/student':                 'Student Dashboard',
   '/student/attendance':      'My Attendance',
@@ -430,6 +431,7 @@ const allTeacherLinks = computed(() => {
   }
   base.push({ to: '/teacher/defaulters', label: 'Defaulters',  icon: icons.defaulter })
   base.push({ to: '/teacher/violations', label: 'Violations',  icon: icons.violation })
+  base.push({ to: '/teacher/profile',    label: 'My Profile',  icon: icons.profile   })
   return base
 })
 const allStudentLinks = [

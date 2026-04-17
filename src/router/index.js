@@ -22,6 +22,7 @@ const TeacherAnnouncements = () => import('../views/teacher/TeacherAnnouncements
 const TeacherQueries    = () => import('../views/teacher/TeacherQueries.vue')
 const TeacherClassOverview = () => import('../views/teacher/TeacherClassOverview.vue')
 const TeacherDefaulters   = () => import('../views/teacher/TeacherDefaulters.vue')
+const TeacherProfile      = () => import('../views/teacher/TeacherProfile.vue')
 
 // Student
 const StudentDashboard  = () => import('../views/student/StudentDashboard.vue')
@@ -64,6 +65,7 @@ const routes = [
   { path: '/teacher/class-overview',     component: TeacherClassOverview, meta: { auth: true, role: 'teacher' } },
   { path: '/teacher/defaulters',         component: TeacherDefaulters,    meta: { auth: true, role: 'teacher' } },
   { path: '/teacher/violations',         component: AdminViolations,      meta: { auth: true, role: 'teacher' } },
+  { path: '/teacher/profile',            component: TeacherProfile,       meta: { auth: true, role: 'teacher' } },
 
   // ── Student ────────────────────────────────────────────────
   { path: '/student',                    component: StudentDashboard,     meta: { auth: true, role: 'student' } },

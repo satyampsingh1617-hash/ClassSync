@@ -162,10 +162,40 @@ const deleteTeacher = async (req, res) => {
 };
 
 /**
- * @route   GET /api/teachers/my/subjects
- * @desc    Get subjects assigned to logged-in teacher
- * @access  Private/Teacher
+ * @route   PUT /api/teachers/my/profile
+ * @desc    Teacher updates their own profile
+ * @access  Private/Teacher or Admin with teacherRef
  */
+const updateMyProfile = async (req, res) => {
+  try {
+    const { name, email, phone, department } = req.body;
+    const teacherId = req.user.teacherRef;
+    if (!teacherId) {
+      return res.status(404).json({ success: false, message: "Teacher profile not linked." });
+    }
+
+    const updateData = {};
+    if (name       !== undefined) updateData.name       = name.trim();
+    if (email      !== undefined) updateData.email      = email.trim();
+    if (phone      !== undefined) updateData.phone      = phone.trim();
+    if (department !== undefined) updateData.department = department.trim();
+
+    const teacher = await Teacher.findByIdAndUpdate(
+      teacherId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    if (!teacher) return res.status(404).json({ success: false, message: "Teacher not found." });
+
+    // Sync name on User account
+    if (name) await User.findByIdAndUpdate(req.user._id, { $set: { name: name.trim() } });
+
+    res.json({ success: true, message: "Profile updated.", teacher });
+  } catch (error) {
+    console.error("updateMyProfile:", error.message);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
 const getMySubjects = async (req, res) => {
   try {
     const teacherId = req.user.teacherRef;
@@ -184,4 +214,5 @@ module.exports = {
   deleteTeacher,
   getMySubjects,
   getMyProfile,
+  updateMyProfile,
 };

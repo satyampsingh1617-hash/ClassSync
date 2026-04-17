@@ -91,12 +91,13 @@ export const studentAPI = {
 
 // ── Teachers ──────────────────────────────────────────────────
 export const teacherAPI = {
-  getAll:     ()         => api.get('/teachers'),
-  getById:    (id)       => api.get(`/teachers/${id}`),
-  update:     (id, data) => api.put(`/teachers/${id}`, data),
-  delete:     (id)       => api.delete(`/teachers/${id}`),
-  mySubjects: ()         => api.get('/teachers/my/subjects'),
-  myProfile:  ()         => api.get('/teachers/my/profile'),
+  getAll:          ()         => api.get('/teachers'),
+  getById:         (id)       => api.get(`/teachers/${id}`),
+  update:          (id, data) => api.put(`/teachers/${id}`, data),
+  delete:          (id)       => api.delete(`/teachers/${id}`),
+  mySubjects:      ()         => api.get('/teachers/my/subjects'),
+  myProfile:       ()         => api.get('/teachers/my/profile'),
+  updateMyProfile: (data)     => api.put('/teachers/my/profile', data),
 }
 
 // ── Subjects ──────────────────────────────────────────────────
