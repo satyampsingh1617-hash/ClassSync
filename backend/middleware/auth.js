@@ -37,23 +37,21 @@ const authorize = (...roles) => {
   };
 };
 
-// ─── teacherClassGuard: teacher can only access their assigned classes ──
-// Reads ?class= query param and checks against teacher's subjects
+// ─── teacherClassGuard: teacher/admin-teacher can only access their assigned classes ──
 const teacherClassGuard = async (req, res, next) => {
   try {
-    // Admins bypass this check
-    if (req.user.role === "admin") return next();
+    const { role, teacherRef } = req.user;
 
-    // Only applies to teachers
-    if (req.user.role !== "teacher") return next();
+    // Pure admin with no teacherRef — bypass (sees everything)
+    if (role === "admin" && !teacherRef) return next();
+
+    // Admin with teacherRef OR regular teacher — apply class isolation
+    if (role !== "teacher" && role !== "admin") return next();
 
     const requestedClass = req.query.class;
-
-    // If no class filter requested, restrict to teacher's classes only
-    // (controller will handle the actual filtering)
     if (!requestedClass) return next();
 
-    const teacherId = req.user.teacherRef;
+    const teacherId = teacherRef;
     if (!teacherId) {
       return res.status(403).json({
         success: false,
@@ -61,7 +59,6 @@ const teacherClassGuard = async (req, res, next) => {
       });
     }
 
-    // Get all classes assigned to this teacher via subjects
     const subjects = await Subject.find({ teacherId }).select("class");
     const assignedClasses = [...new Set(subjects.map(s => s.class))];
 
@@ -79,12 +76,17 @@ const teacherClassGuard = async (req, res, next) => {
   }
 };
 
-// ─── getTeacherClasses: attach teacher's assigned classes to req ──
+// ─── attachTeacherClasses: attach teacher's assigned classes to req ──
 const attachTeacherClasses = async (req, res, next) => {
   try {
-    if (req.user.role !== "teacher") return next();
+    const { role, teacherRef } = req.user;
 
-    const teacherId = req.user.teacherRef;
+    // Pure admin with no teacherRef — skip (admin sees all)
+    if (role === "admin" && !teacherRef) return next();
+
+    if (role !== "teacher" && role !== "admin") return next();
+
+    const teacherId = teacherRef;
     if (!teacherId) {
       req.teacherClasses = [];
       return next();

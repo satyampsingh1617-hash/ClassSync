@@ -69,6 +69,7 @@ export const adminAPI = {
   deleteUser:    (id)  => api.delete(`/admin/users/${id}`),
   classes:       ()    => api.get('/admin/classes'),
   resetStudents: (confirmText) => api.delete('/admin/reset-students', { data: { confirmText } }),
+  linkTeacher:   (teacherId)   => api.post('/admin/link-teacher', { teacherId }),
 }
 
 // ── Students ──────────────────────────────────────────────────

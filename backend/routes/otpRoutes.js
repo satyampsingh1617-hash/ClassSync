@@ -7,10 +7,10 @@ const {
 const { protect, authorize } = require("../middleware/auth");
 const validate = require("../middleware/validate");
 
-// Teacher generates OTP for a subject
+// Teacher generates OTP for a subject — admin with teacherRef can also generate
 router.post(
   "/generate",
-  protect, authorize("teacher"),
+  protect, authorize("teacher", "admin"),
   [
     body("subjectId").notEmpty().withMessage("Subject ID is required"),
     body("topicName").optional().isString(),
@@ -38,7 +38,7 @@ router.post(
 );
 
 // Teacher views active OTP for a subject
-router.get("/active/:subjectId", protect, authorize("teacher"), getActiveOTP);
+router.get("/active/:subjectId", protect, authorize("teacher", "admin"), getActiveOTP);
 
 // Teacher/Admin deactivates an OTP
 router.post("/deactivate/:id", protect, authorize("teacher", "admin"), deactivateOTP);

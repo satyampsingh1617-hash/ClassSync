@@ -15,6 +15,25 @@
 
     <AlertMessage :message="alert.msg" :type="alert.type" class="mb-4" />
 
+    <!-- Admin-Teacher setup banner -->
+    <div v-if="!myTeacherId" class="mb-4 flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+      <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div class="flex-1">
+        <p class="text-sm font-bold text-amber-800">Want to teach subjects as Admin?</p>
+        <p class="text-xs text-amber-700 mt-0.5">Go to <strong>Teachers</strong> → create a teacher profile for yourself → then come back here to assign subjects to yourself.</p>
+      </div>
+    </div>
+    <div v-else class="mb-4 flex items-center gap-3 p-3 rounded-xl bg-brand-50 border border-brand-200">
+      <svg class="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-xs font-semibold text-brand-700">
+        You have a teacher profile linked. Use <strong>"Assign to Me"</strong> in the subject form to teach subjects directly.
+      </p>
+    </div>
+
     <div class="card p-0 overflow-hidden">
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
@@ -75,6 +94,9 @@
           <label class="label">Assign Teacher</label>
           <select v-model="form.teacherId" class="input">
             <option value="">— Unassigned —</option>
+            <option v-if="myTeacherId" :value="myTeacherId" class="font-bold text-brand-700">
+              ⭐ Assign to Me (Admin)
+            </option>
             <option v-for="t in teachers" :key="t._id" :value="t._id">{{ t.name }} ({{ t.department || 'N/A' }})</option>
           </select>
         </div>
@@ -108,8 +130,11 @@ import AppLayout from '../../components/AppLayout.vue'
 import ModalDialog from '../../components/ModalDialog.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
-import { subjectAPI, teacherAPI } from '../../services/api'
+import { subjectAPI, teacherAPI, adminAPI } from '../../services/api'
 import { CLASS_LIST } from '../../utils/constants'
+import { useAuth } from '../../stores/auth'
+
+const { user } = useAuth()
 
 const subjects     = ref([])
 const teachers     = ref([])
@@ -120,6 +145,7 @@ const showDelete   = ref(false)
 const editId       = ref(null)
 const deleteTarget = ref(null)
 const alert        = ref({ msg: '', type: 'success' })
+const myTeacherId  = ref(user.value?.teacherRef || null) // admin's own teacherRef
 
 const emptyForm = () => ({ name: '', code: '', class: '', teacherId: '', description: '' })
 const form = ref(emptyForm())

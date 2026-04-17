@@ -29,8 +29,8 @@ const studentValidation = [
 router.get("/my/profile",    protect, authorize("student"), getMyProfile);
 router.get("/my/attendance", protect, authorize("student"), getMyAttendance);
 
-// ── Excel bulk upload (teacher) ───────────────────────────────
-router.post("/bulk-upload", protect, authorize("teacher"), (req, res, next) => {
+// ── Excel bulk upload (teacher + admin) ──────────────────────
+router.post("/bulk-upload", protect, authorize("teacher", "admin"), (req, res, next) => {
   upload.single("file")(req, res, (err) => {
     if (err) {
       return res.status(400).json({ success: false, message: err.message || "File upload error." });
@@ -43,7 +43,7 @@ router.post("/bulk-upload", protect, authorize("teacher"), (req, res, next) => {
 }, bulkUploadStudents);
 
 // ── Teacher creates single student ───────────────────────────
-router.post("/teacher-create", protect, authorize("teacher"), studentValidation, validate, createStudentByTeacher);
+router.post("/teacher-create", protect, authorize("teacher", "admin"), studentValidation, validate, createStudentByTeacher);
 
 // ── List students (admin + teacher, with class guard) ─────────
 router.get("/",

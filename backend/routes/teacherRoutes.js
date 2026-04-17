@@ -17,9 +17,9 @@ const teacherValidation = [
   body("name").trim().notEmpty().withMessage("Teacher name is required"),
 ];
 
-// Teacher's own routes
-router.get("/my/subjects", protect, authorize("teacher"), getMySubjects);
-router.get("/my/profile",  protect, authorize("teacher"), getMyProfile);
+// Teacher's own routes — admin with teacherRef can also use these
+router.get("/my/subjects", protect, authorize("teacher", "admin"), getMySubjects);
+router.get("/my/profile",  protect, authorize("teacher", "admin"), getMyProfile);
 
 // Admin routes
 router.post("/", protect, authorize("admin"), teacherValidation, validate, createTeacher);

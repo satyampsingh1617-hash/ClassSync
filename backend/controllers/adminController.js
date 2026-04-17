@@ -179,4 +179,27 @@ const resetAllStudents = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardStats, getAllUsers, deleteUser, getClasses, resetAllStudents };
+// ─── POST /api/admin/link-teacher ────────────────────────────
+// Admin links their own Teacher profile so they can teach subjects
+const linkMyTeacherProfile = async (req, res) => {
+  try {
+    const { teacherId } = req.body;
+    if (!teacherId) {
+      return res.status(400).json({ success: false, message: "teacherId is required." });
+    }
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: "Teacher not found." });
+    }
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { teacherRef: teacherId },
+      { new: true }
+    ).select("-password");
+    return res.json({ success: true, message: "Teacher profile linked.", user: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
+
+module.exports = { getDashboardStats, getAllUsers, deleteUser, getClasses, resetAllStudents, linkMyTeacherProfile };

@@ -15,6 +15,31 @@
 
     <AlertMessage :message="alert.msg" :type="alert.type" class="mb-4" />
 
+    <!-- Admin-Teacher link banner -->
+    <div v-if="!myTeacherLinked" class="mb-4 card border-brand-200 bg-brand-50 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div class="flex-1">
+        <p class="text-sm font-bold text-brand-800">🎓 Teach as Admin</p>
+        <p class="text-xs text-brand-700 mt-0.5">Select your teacher profile below to enable attendance marking and OTP generation for your own subjects.</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <select v-model="linkTeacherId" class="input w-48 text-sm">
+          <option value="">— Select your profile —</option>
+          <option v-for="t in teachers" :key="t._id" :value="t._id">{{ t.name }}</option>
+        </select>
+        <button @click="linkMyProfile" :disabled="!linkTeacherId || linking" class="btn-primary text-xs py-2 px-4">
+          {{ linking ? 'Linking...' : 'Link' }}
+        </button>
+      </div>
+    </div>
+    <div v-else class="mb-4 flex items-center gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+      <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-xs font-semibold text-emerald-700">
+        Teacher profile linked ✓ — Go to <strong>Subjects</strong> to assign subjects to yourself, then use <strong>Mark Attendance</strong> from the sidebar.
+      </p>
+    </div>
+
     <div class="card p-0 overflow-hidden">
       <LoadingSpinner v-if="loading" />
       <div v-else class="overflow-x-auto">
@@ -152,11 +177,17 @@ import ModalDialog from '../../components/ModalDialog.vue'
 import AlertMessage from '../../components/AlertMessage.vue'
 import LoadingSpinner from '../../components/LoadingSpinner.vue'
 import { authAPI, teacherAPI, adminAPI } from '../../services/api'
+import { useAuth } from '../../stores/auth'
 
-const teachers     = ref([])
-const classes      = ref([])
-const loading      = ref(true)
-const saving       = ref(false)
+const { user, setAuth } = useAuth()
+
+const teachers      = ref([])
+const classes       = ref([])
+const loading       = ref(true)
+const saving        = ref(false)
+const linking       = ref(false)
+const linkTeacherId = ref('')
+const myTeacherLinked = ref(!!user.value?.teacherRef)
 const showModal    = ref(false)
 const showDelete   = ref(false)
 const editId       = ref(null)
@@ -172,6 +203,22 @@ const form = ref(emptyForm())
 const showAlert = (msg, type='success') => {
   alert.value = { msg, type }
   setTimeout(() => alert.value.msg='', 3500)
+}
+
+const linkMyProfile = async () => {
+  if (!linkTeacherId.value) return
+  linking.value = true
+  try {
+    const { data } = await adminAPI.linkTeacher(linkTeacherId.value)
+    // Update stored user so teacherRef is reflected immediately
+    const stored = JSON.parse(localStorage.getItem('user') || '{}')
+    stored.teacherRef = data.user.teacherRef
+    localStorage.setItem('user', JSON.stringify(stored))
+    myTeacherLinked.value = true
+    showAlert('Teacher profile linked! Go to Subjects to assign subjects to yourself.', 'success')
+  } catch (e) {
+    showAlert(e.response?.data?.message || 'Failed to link profile', 'error')
+  } finally { linking.value = false }
 }
 
 // Fetch teachers by getting all users with role=teacher

@@ -268,10 +268,16 @@ const router = useRouter()
 const sidebarCollapsed  = ref(false)
 const mobileMenuOpen    = ref(false)
 const teacherProfile    = ref(null)
-const unreadCount       = ref(0)   // student: unread announcements
-const pendingQueryCount = ref(0)   // teacher: pending (unresponded) queries
-const unseenReplyCount  = ref(0)   // student: resolved queries not yet seen
-const violationCount    = ref(0)   // teacher/admin: new geofence violations
+const adminSubjects     = ref([])   // subjects assigned to admin as teacher
+const unreadCount       = ref(0)
+const pendingQueryCount = ref(0)
+const unseenReplyCount  = ref(0)
+const violationCount    = ref(0)
+
+// Admin is also a teacher if they have a teacherRef with subjects assigned
+const isAdminTeacher = computed(() =>
+  isAdmin.value && user.value?.teacherRef != null && adminSubjects.value.length > 0
+)
 
 onMounted(async () => {
   if (isTeacher.value) {
@@ -283,7 +289,6 @@ onMounted(async () => {
       const { data } = await queryAPI.getAll()
       pendingQueryCount.value = (data.queries || []).filter(q => q.status === 'Pending').length
     } catch { /* ignore */ }
-    // Violation badge — today's violations
     try {
       const today = new Date().toISOString().split('T')[0]
       const { data } = await otpAPI.getViolations({ date: today })
@@ -291,12 +296,22 @@ onMounted(async () => {
     } catch { /* ignore */ }
   }
   if (isAdmin.value) {
-    // Admin violation badge — today's violations
     try {
       const today = new Date().toISOString().split('T')[0]
       const { data } = await otpAPI.getViolations({ date: today })
       violationCount.value = data.count || 0
     } catch { /* ignore */ }
+    // Check if admin has subjects assigned (admin-teacher mode)
+    if (user.value?.teacherRef) {
+      try {
+        const { data } = await teacherAPI.mySubjects()
+        adminSubjects.value = data.subjects || []
+        if (adminSubjects.value.length) {
+          const profileRes = await teacherAPI.myProfile()
+          teacherProfile.value = profileRes.data.teacher
+        }
+      } catch { /* ignore */ }
+    }
   }
   if (isStudent.value) {
     try {
@@ -384,6 +399,22 @@ const allAdminLinks = [
   { to: '/admin/announcements',   label: 'Announcements',  icon: icons.bell       },
   { to: '/admin/violations',      label: 'Violations',     icon: icons.violation  },
 ]
+
+// Extra teacher links shown to admin when they have subjects assigned
+const adminTeacherLinks = computed(() => {
+  if (!isAdminTeacher.value) return []
+  return [
+    { to: '/teacher/attendance',  label: 'Mark Attendance', icon: icons.attendance },
+    { to: '/teacher/notes',       label: 'Notes Hub',       icon: icons.notes      },
+    { to: '/teacher/paper-print', label: 'Paper Print',     icon: icons.print      },
+    { to: '/teacher/defaulters',  label: 'Defaulters',      icon: icons.defaulter  },
+  ]
+})
+
+const allAdminLinksComputed = computed(() => [
+  ...allAdminLinks,
+  ...adminTeacherLinks.value,
+])
 const allTeacherLinks = computed(() => {
   const base = [
     { to: '/teacher',                  label: 'Dashboard',    icon: icons.dashboard  },
@@ -411,7 +442,7 @@ const allStudentLinks = [
 ]
 
 const navLinks = computed(() => {
-  if (isAdmin.value)   return allAdminLinks
+  if (isAdmin.value)   return allAdminLinksComputed.value
   if (isTeacher.value) return allTeacherLinks.value
   if (isStudent.value) return allStudentLinks
   return []

@@ -6,7 +6,7 @@ const { protect, authorize } = require("../middleware/auth");
 const validate = require("../middleware/validate");
 
 router.post("/",
-  protect, authorize("teacher"),
+  protect, authorize("teacher", "admin"),
   [
     body("title").trim().notEmpty().withMessage("Title required"),
     body("subjectId").notEmpty().withMessage("Subject required"),
