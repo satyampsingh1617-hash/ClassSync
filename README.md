@@ -1,5 +1,95 @@
-# Vue 3 + Vite
+# 🚀 ClassSync - AI Attendance & Question Paper System
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## 🌐 Live Demo
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+🔗 https://rkt-un.netlify.app
+🔗 Admin Panel: https://rkt-un.netlify.app/admin
+
+---
+
+## 📌 Overview
+
+ClassSync is a full-stack academic management system designed to automate attendance and generate AI-based question papers using secure verification and intelligent automation.
+
+---
+
+## 🔐 Role-Based Access System
+
+The system supports **three types of users**, each with dedicated functionalities:
+
+### 👨‍💼 Admin
+
+* Manage students and teachers
+* Monitor overall attendance analytics
+* Send announcements to all users
+* System-level control and data management
+
+### 👨‍🏫 Teacher
+
+* Generate OTP for attendance
+* Track student attendance records
+* Generate AI-based question papers
+* Upload notes and study materials
+
+### 🎓 Student
+
+* Mark attendance using OTP + location verification
+* View attendance status (Safe / Warning)
+* Access study materials
+* Raise queries and receive announcements
+
+---
+
+## 🔥 Key Features
+
+* 📍 Geo-Fencing Attendance (100m campus radius)
+* 🔐 OTP-based secure attendance verification
+* 🤖 AI-powered Question Paper Generation (Hugging Face API)
+* 📊 Admin Dashboard with analytics & reports
+* 📢 Announcement & Query Management System
+* 📱 Fully responsive (Mobile + Web App)
+
+---
+
+## 🛠 Tech Stack
+
+* **Frontend:** Vue.js 3, Tailwind CSS
+* **Backend:** Node.js, Express.js (Hosted on Railway)
+* **Database:** MongoDB Atlas
+* **AI Integration:** Hugging Face API
+* **Deployment:** Netlify + Railway
+
+---
+
+## 📸 Screenshots
+
+> (Will be added soon)
+
+---
+
+## 🚀 How to Run Locally
+
+```bash
+git clone https://github.com/your-username/ClassSync.git
+npm install
+npm run dev
+```
+
+---
+
+## 🎯 Use Case
+
+This system helps institutions to:
+
+* Prevent proxy attendance using OTP + location verification
+* Automate question paper generation using AI
+* Improve communication between students and faculty
+
+---
+
+## 👨‍💻 Author
+
+**Prince Singh**
+Software Developer | Full Stack | AI-based Applications
+
+---
