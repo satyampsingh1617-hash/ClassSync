@@ -63,7 +63,25 @@ The system supports **three types of users**, each with dedicated functionalitie
 
 ## 📸 Screenshots
 
-> (Will be added soon)
+
+### 🏠 Login Page
+![Login](screenshots/Login.png)
+
+### 📊 Admin Dashboard
+![Admin](screenshots/Admin-dashboard.png)
+
+### 👨‍🏫 Teacher Attendance & OTP
+![Teacher](screenshots/Teacher-attendance.png)
+
+### 🤖 AI Question Generator
+![AI](screenshots/AI-Generator.png)
+
+### 🎓 Student Dashboard
+![Student](screenshots/Student-dashboard.png)
+
+### 📊 Attendance Status
+![Attendance](screenshots/Attendance-status.png)
+
 
 ---
 
